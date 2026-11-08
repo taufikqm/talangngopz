@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Arjuna Split Bill — berkas awal proyek
 
-## Getting Started
+Isi map ini menutup bagian yang belum ada di PRD dan SRS. Salin seluruhnya ke
+akar repositori baru, lalu mulai dari tiket T-01.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+AGENTS.md                              baca dulu. Aturan yang mengikat agen
+docs/
+  ui-spec-tahap-1.md                   8 layar, keadaan, kriteria terima
+  backlog-tahap-1.md                   15 tiket berurutan + Tahap 2
+src/lib/
+  uang.ts                              perhitungan uang. FINAL
+  uang.test.ts                         21 uji, termasuk uji properti 1.000 kombinasi
+  parser.ts                            penguraian tabel ChatGPT. FINAL
+  parser.test.ts                       31 uji
+  __fixtures__/chatgpt.ts              3 keluaran ChatGPT nyata, verbatim
+  contracts.ts                         tipe Server Action dan Route Handler
+supabase/
+  migrations/0001_schema.sql           tabel, indeks, tampilan v_piutang
+  migrations/0002_rls.sql              RLS + kebijakan
+  migrations/0003_guards.sql           5 pemicu penjaga
+  seed.sql                             12 anggota
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Status uji
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+52 uji hijau pada Vitest 3.2.4, Node 22.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm add -D vitest typescript
+pnpm vitest run
+```
 
-## Learn More
+## Tiga hal yang paling mudah dirusak
 
-To learn more about Next.js, take a look at the following resources:
+**Pajak ganda.** Data dari ChatGPT hampir selalu sudah mengandung pajak.
+Menjalankan alokasi di atasnya menambah tagihan tiap orang, dan invarian
+`Σ = total` **tidak menangkapnya** karena datanya konsisten di level pasca-pajak.
+Penjaganya hanya `selisih === 0` dari parser. Ada uji khusus untuk ini di
+`parser.test.ts`, kasus "JEBAKAN PAJAK GANDA".
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Mengalikan `satuan`.** Saat memecah baris `qty > 1`, bagi `subtotal`.
+`Rp32.000 ÷ 3` menghasilkan satuan tampilan `10.666`; dikalikan balik jadi
+`31.998`, meleset Rp2 dari yang dibayar.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**RLS yang dikira jalan.** Migrasi berhasil tidak berarti kebijakannya benar.
+T-03 memverifikasinya dengan dua akun, dan ulangi di produksi sebelum data
+nyata masuk.
 
-## Deploy on Vercel
+## Yang sengaja tidak ada
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+OCR, pemanggilan API model AI, otomasi antarmuka ChatGPT, akun untuk peserta,
+payment gateway, obrolan di dalam aplikasi. Alasan tiap keputusan ada di PRD.
