@@ -23,7 +23,7 @@ create table members (
   nama_panggilan text not null,
   whatsapp       text,
   profile_id     uuid references profiles(id) on delete set null,
-  access_token   text not null unique default encode(gen_random_bytes(24), 'base64'),
+  access_token   text not null unique default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
   aktif          boolean not null default true,
   created_at     timestamptz not null default now()
 );
@@ -47,7 +47,7 @@ create table events (
   -- Saat true, rumus alokasi SRS 6.3 TIDAK dijalankan. Lihat AGENTS.md aturan 3.
   sudah_teralokasi boolean not null default false,
 
-  share_token   text not null unique default encode(gen_random_bytes(16), 'base64'),
+  share_token   text not null unique default replace(gen_random_uuid()::text, '-', ''),
   terkunci      boolean not null default false,
   created_at    timestamptz not null default now()
 );
@@ -99,7 +99,8 @@ create index on payment_events (share_id, created_at desc);
 create index on events         (payer_id, tanggal desc);
 
 -- Dasbor membaca tampilan ini agar logika penjumlahan tidak tersebar.
-create view v_piutang as
+-- security_invoker: tampilan mengikuti RLS pemanggil, bukan hak pemilik.
+create view v_piutang with (security_invoker = true) as
 select
   s.member_id,
   m.nama_panggilan,
