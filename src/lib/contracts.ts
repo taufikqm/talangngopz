@@ -81,6 +81,10 @@ export type Keluar = () => Promise<Hasil<null>>;
  *
  * Bila `sudahTeralokasi` true, pajak/biayaLayanan/diskon diabaikan dan
  * alokasi dilewati. Nilai ini berasal dari parser, bukan dari penalang.
+ *
+ * Penanggung sisa pembulatan tidak dikirim klien: server memakai anggota milik
+ * penalang (members.profile_id), atau peserta pertama menurut nama bila penalang
+ * tidak ikut. Porsi penalang sendiri langsung berstatus lunas.
  */
 export type BuatEventMasukan = {
   judul: string;
@@ -98,7 +102,6 @@ export type BuatEventMasukan = {
   unit?: Unit[];
   /** Baris asal, disimpan ke bill_items untuk rujukan. */
   items?: BarisItem[];
-  pembulatanKe: string;                 // memberId
   sudahTeralokasi: boolean;
 };
 
