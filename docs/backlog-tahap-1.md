@@ -193,6 +193,9 @@ menjalankan** `supabase db push --remote`.
 
 ## T-08 · Tautan publik dan halaman peserta
 
+**Status:** selesai. Bukti: commit `df20c05`, `0005` terpasang di remote,
+`pnpm test` 241 lulus tanpa skipped.
+
 **Tergantung:** T-07b
 
 `/bill/[token]` dan `/me/[token]`. Route Handler memakai `service.ts`.
@@ -231,6 +234,9 @@ Jalur ini melewati RLS, jadi batasi baris secara manual: cocokkan token, ambil
 ---
 
 ## T-09 · Klaim dan konfirmasi
+
+**Status:** selesai. Bukti: commit `2821e83`, `0006` terpasang di remote,
+`pnpm test` 299 lulus tanpa skipped.
 
 **Tergantung:** T-08
 
