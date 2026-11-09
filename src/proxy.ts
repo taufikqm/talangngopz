@@ -1,13 +1,48 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { envSupabasePublik, opsiCookieSesi } from '@/lib/supabase/cookie';
+import { GalatPemuat, tokenDikenal, type JenisToken } from '@/lib/publik';
 
 /** Rute yang boleh dibuka tanpa sesi penalang. */
 function rutePublik(path: string): boolean {
   return path === '/login';
 }
 
+const RUTE_PESERTA = /^\/(me|bill)(?:\/|$)/;
+const TOKEN_DI_RUTE = /^\/(?:me|bill)\/([^/]+)\/?$/;
+
+const HEADER_PESERTA = {
+  'Cache-Control': 'private, no-store',
+  'X-Robots-Tag': 'noindex',
+  'Referrer-Policy': 'no-referrer',
+} as const;
+
+/**
+ * Halaman peserta tidak memakai sesi. Token diperiksa di sini, bukan di halaman:
+ * notFound() di dalam Suspense terjadi setelah streaming dimulai dan berstatus 200.
+ * Token tidak dikenal, berformat salah, atau rute bersarang mendapat 404 yang sama.
+ */
+async function jagaRutePeserta(request: NextRequest, jenis: JenisToken): Promise<NextResponse> {
+  const token = TOKEN_DI_RUTE.exec(request.nextUrl.pathname)?.[1] ?? '';
+  let dikenal: boolean;
+  try {
+    dikenal = await tokenDikenal(jenis, token);
+  } catch (e) {
+    // Galat basis data diteruskan ke halaman, yang menampilkan pesan gagal muat sendiri.
+    console.error('proxy rute peserta: pemeriksaan token gagal', e instanceof GalatPemuat ? e.kode : 'tidak_dikenal');
+    dikenal = true;
+  }
+  const respons = dikenal
+    ? NextResponse.next()
+    : NextResponse.rewrite(new URL('/_tidak-ditemukan', request.url), { status: 404 });
+  for (const [nama, nilai] of Object.entries(HEADER_PESERTA)) respons.headers.set(nama, nilai);
+  return respons;
+}
+
 export async function proxy(request: NextRequest) {
+  const peserta = RUTE_PESERTA.exec(request.nextUrl.pathname);
+  if (peserta) return jagaRutePeserta(request, peserta[1] as JenisToken);
+
   let respons = NextResponse.next({ request });
   const { url, kunciAnon } = envSupabasePublik();
 
@@ -49,9 +84,9 @@ function keLogin(request: NextRequest, respons: NextResponse): NextResponse {
 }
 
 export const config = {
-  // Halaman peserta (/bill, /me) dan API bertoken tidak memakai sesi penalang,
-  // jadi tidak dilewatkan ke sini sama sekali.
+  // API bertoken tidak memakai sesi penalang, jadi tidak dilewatkan ke sini. Halaman
+  // peserta (/bill, /me) lewat untuk pemeriksaan token, tanpa menyentuh sesi.
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|bill/|me/|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
   ],
 };

@@ -208,21 +208,39 @@ export type KlaimKeluaran = {
   claimedAt: string;
 };
 
+/** Rekening tujuan satu penalang. Seorang anggota bisa berutang ke beberapa penalang. */
+export type TujuanTransfer = {
+  penalangId: string;
+  nama: string;
+  bank: string | null;
+  noRekening: string | null;
+  qrisUrl: string | null;
+};
+
+/** /me/[token]. Hanya data milik anggota pemegang token; tanpa surel atau WhatsApp. */
 export type RekapPribadi = {
   namaPanggilan: string;
+  /** belum_bayar ditambah menunggu_konfirmasi. */
   totalUtang: Rupiah;
+  tujuan: TujuanTransfer[];
   perEvent: Array<{
     shareId: string;
     judul: string;
     tanggal: string;
     total: Rupiah;
     status: ShareStatus;
-    penalang: string;
+    penalangId: string;
+    /** claimed_at klaim berstatus menunggu yang memuat porsi ini. */
+    menungguSejak: string | null;
+    lunasPada: string | null;
   }>;
-  tujuanTransfer: {
-    nama: string;
-    bank: string | null;
-    noRekening: string | null;
-    qrisUrl: string | null;
-  };
+};
+
+/** /bill/[token]. Satu event untuk semua peserta; tanpa surel atau WhatsApp siapa pun. */
+export type RekapEvent = {
+  judul: string;
+  tanggal: string;
+  total: Rupiah;
+  penalang: string;
+  peserta: Array<{ nama: string; total: Rupiah; status: ShareStatus }>;
 };
