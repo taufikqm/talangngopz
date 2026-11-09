@@ -11,7 +11,7 @@ import type { BarisItem, Unit } from './parser';
 export type KodeGalat =
   | 'tidak_berwenang'   // 401/403: tidak ada sesi, atau bukan pemilik event
   | 'tidak_ditemukan'   // 404: juga dipakai saat token salah, agar tidak bocor
-  | 'validasi'          // 422: masukan tidak lolos skema
+  | 'validasi'          // 400/422: masukan tidak lolos skema
   | 'tidak_seimbang'    // 422: jumlah porsi tidak sama dengan total
   | 'event_terkunci'    // 409: event sudah punya pelunasan
   | 'konflik'           // 409: status sudah berubah, atau sudah lunas
@@ -113,23 +113,14 @@ export type BuatEventKeluaran = {
 
 export type BuatEvent = (m: BuatEventMasukan) => Promise<Hasil<BuatEventKeluaran>>;
 
-/** Hanya pemilik event. Mengisi settled_at dan memicu penguncian event. */
-export type KonfirmasiPembayaran = (m: {
-  shareId: string;
-  catatan?: string;
-}) => Promise<Hasil<{ status: ShareStatus; settledAt: string }>>;
+/** Hanya penalang tujuan klaim. Semua porsi di klaim jadi lunas dan eventnya terkunci. */
+export type KonfirmasiKlaim = (m: { claimId: string }) => Promise<Hasil<{ claimId: string }>>;
 
-/** Mengembalikan status ke belum_bayar. Alasan wajib. */
-export type TolakKlaim = (m: {
-  shareId: string;
-  alasan: string;
-}) => Promise<Hasil<{ status: ShareStatus }>>;
+/** Hanya penalang tujuan klaim. Semua porsi di klaim kembali belum_bayar. Alasan wajib. */
+export type TolakKlaim = (m: { claimId: string; alasan: string }) => Promise<Hasil<{ claimId: string }>>;
 
-/** Pembayaran tunai: melewati tahap klaim. */
-export type TandaiLunasManual = (m: {
-  shareId: string;
-  catatan?: string;
-}) => Promise<Hasil<{ status: ShareStatus; settledAt: string }>>;
+/** Pembayaran tunai: satu porsi belum_bayar langsung lunas, tanpa klaim, bercatatan "tunai". */
+export type TandaiLunasManual = (m: { shareId: string }) => Promise<Hasil<{ shareId: string }>>;
 
 export type SimpanAnggota = (m: {
   id?: string;                          // kosong berarti membuat baru
@@ -190,22 +181,26 @@ export type PratinjauImpor = (m: {
 // ---------------------------------------------------------------------------
 
 /**
- * POST /api/claim
+ * POST /api/claim. Satu transfer = satu klaim berisi satu atau lebih porsi.
  *
  * Token tidak dikenal dan shareId milik orang lain sama-sama mengembalikan
- * 'tidak_ditemukan', agar keberadaan token tidak dapat ditebak dari beda pesan.
- * Idempoten: klaim ulang mengembalikan ok tanpa baris riwayat kedua.
- * Batas laju 10 permintaan per token per menit.
+ * 'tidak_ditemukan' (404) dengan isi yang sama, agar keberadaan token tidak dapat
+ * ditebak. Klaim ulang untuk porsi yang sama mengembalikan 'konflik' (409) tanpa
+ * klaim atau riwayat kedua. Batas laju 10 permintaan per token per menit (429).
+ * Nominal tidak pernah datang dari klien; server menjumlahkan shares.total.
  */
 export type KlaimMasukan = {
-  memberToken: string;
-  shareId: string;
-  catatan?: string;
+  token: string;
+  shareIds: string[];
+  /** ISO 8601 dengan zona, misalnya 2026-11-09T14:20:00+07:00. */
+  waktuTransfer: string;
+  /** Nama di rekening pengirim atau nama bank. */
+  pengirim: string;
 };
 
 export type KlaimKeluaran = {
-  status: ShareStatus;
-  claimedAt: string;
+  claimId: string;
+  nominal: Rupiah;
 };
 
 /** Rekening tujuan satu penalang. Seorang anggota bisa berutang ke beberapa penalang. */

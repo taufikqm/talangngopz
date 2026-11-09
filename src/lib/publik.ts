@@ -56,6 +56,11 @@ async function cocokkan(db: SupabaseClient, jenis: JenisToken, token: string): P
   return sah && baris ? baris.id : null;
 }
 
+/** id anggota pemegang token /me, atau null. Dipakai POST /api/claim. */
+export async function memberDariToken(token: string): Promise<string | null> {
+  return cocokkan(buatKlienService(), 'me', token);
+}
+
 /** Dipakai Proxy untuk mengembalikan 404 sungguhan sebelum halaman mulai di-stream. */
 export async function tokenDikenal(jenis: JenisToken, token: string): Promise<boolean> {
   return (await cocokkan(buatKlienService(), jenis, token)) !== null;

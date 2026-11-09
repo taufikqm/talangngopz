@@ -1,10 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import type { RekapPribadi } from '@/lib/contracts';
+import { useParams, useRouter } from 'next/navigation';
+import type { Hasil, KlaimKeluaran, KlaimMasukan, RekapPribadi } from '@/lib/contracts';
 import { ZONA_WAKTU } from '@/lib/event';
+import { bolehDicentang, penalangTerpilih } from '@/lib/pilihan-bayar';
 import { rupiah } from '@/lib/uang';
+import { waktuTransferDariJam } from '@/lib/waktu-transfer';
 import { KELAS_STATUS, LABEL_STATUS, tampilJam, tampilTanggal, tampilTanggalWaktu } from '../../tampilan';
+
+const PESAN_LURING = 'Kamu sedang luring. Klaim belum terkirim, coba lagi saat tersambung.';
+const KELAS_GALAT = 'text-sm font-medium text-[#9A2A12]';
 
 type Baris = RekapPribadi['perEvent'][number];
 
@@ -27,12 +33,15 @@ export function DaftarBayar({
   namaPenalang: Record<string, string>;
   namaPanggilan: string;
 }) {
+  const router = useRouter();
+  const { token } = useParams<{ token: string }>();
   const [terpilih, setTerpilih] = useState<Set<string>>(() => new Set());
   const [isian, setIsian] = useState<{ jam: string; pengirim: string } | null>(null);
+  const [mengirim, setMengirim] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
 
   const dipilih = perEvent.filter((p) => terpilih.has(p.shareId));
-  // Satu transfer menuju satu rekening: centang dikunci ke penalang event pertama yang dipilih.
-  const penalangDipilih = dipilih[0]?.penalangId ?? null;
+  const penalangDipilih = penalangTerpilih(perEvent, terpilih);
   const jumlah = dipilih.reduce((a, p) => a + p.total, 0);
   const adaBedaPenalang =
     penalangDipilih !== null && perEvent.some((p) => p.status === 'belum_bayar' && p.penalangId !== penalangDipilih);
@@ -42,7 +51,39 @@ export function DaftarBayar({
     if (baru.has(id)) baru.delete(id);
     else baru.add(id);
     setTerpilih(baru);
+    setGalat(null);
     if (baru.size === 0) setIsian(null);
+  }
+
+  async function kirim() {
+    if (!isian || mengirim) return;
+    const waktuTransfer = waktuTransferDariJam(isian.jam);
+    if (!waktuTransfer) return setGalat('Jam transfer tidak sah.');
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return setGalat(PESAN_LURING);
+    setMengirim(true);
+    setGalat(null);
+    const masukan: KlaimMasukan = { token, shareIds: [...terpilih], waktuTransfer, pengirim: isian.pengirim.trim() };
+    try {
+      const respons = await fetch('/api/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(masukan),
+      });
+      const hasil = (await respons.json()) as Hasil<KlaimKeluaran>;
+      if (hasil.ok || hasil.kode === 'konflik') {
+        // Berhasil: lencana "Menunggu konfirmasi" datang dari data segar. Konflik: tampilkan status terbaru.
+        if (!hasil.ok) setGalat(hasil.pesan);
+        setTerpilih(new Set());
+        setIsian(null);
+        router.refresh();
+        return;
+      }
+      setGalat(hasil.pesan);
+    } catch {
+      setGalat(navigator.onLine ? 'Klaim gagal dikirim. Coba lagi sebentar lagi.' : PESAN_LURING);
+    } finally {
+      setMengirim(false);
+    }
   }
 
   if (perEvent.length === 0) {
@@ -60,7 +101,7 @@ export function DaftarBayar({
       <ul className="mt-2 flex flex-col divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
         {perEvent.map((p) => {
           const bisaDicentang = p.status === 'belum_bayar';
-          const terkunci = bisaDicentang && penalangDipilih !== null && p.penalangId !== penalangDipilih;
+          const terkunci = bisaDicentang && !terpilih.has(p.shareId) && !bolehDicentang(p, penalangDipilih);
           const idCentang = `centang-${p.shareId}`;
           return (
             <li key={p.shareId} className="flex min-h-16 items-start gap-3 py-3">
@@ -103,10 +144,23 @@ export function DaftarBayar({
         })}
       </ul>
 
+      {/* Di luar bilah bawah: pesan konflik tetap terlihat setelah pilihan dikosongkan. */}
+      {galat && dipilih.length === 0 && (
+        <p role="alert" className={`mt-3 ${KELAS_GALAT}`}>
+          {galat}
+        </p>
+      )}
+
       {dipilih.length > 0 && (
         <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-3 border-t border-zinc-200 bg-white px-4 pt-3 pb-4 dark:border-zinc-800 dark:bg-black">
           {isian ? (
-            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-3">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void kirim();
+              }}
+              className="flex flex-col gap-3"
+            >
               <p className="font-medium tabular-nums">
                 Bayar {rupiah(jumlah)} ({dipilih.length} event)
               </p>
@@ -132,18 +186,27 @@ export function DaftarBayar({
                   className={KELAS_MEDAN}
                 />
               </div>
+              {galat && (
+                <p role="alert" className={KELAS_GALAT}>
+                  {galat}
+                </p>
+              )}
               <button
                 type="submit"
-                disabled
-                aria-describedby="keterangan-kirim"
+                disabled={mengirim}
                 className="min-h-11 rounded-lg bg-zinc-900 font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
               >
-                Saya sudah transfer
+                {mengirim ? 'Mengirim…' : 'Saya sudah transfer'}
               </button>
-              <p id="keterangan-kirim" className="text-center text-sm text-zinc-700 dark:text-zinc-300">
-                Pengiriman klaim segera tersedia
-              </p>
-              <button type="button" onClick={() => setIsian(null)} className="min-h-11 text-sm font-medium underline underline-offset-4">
+              <button
+                type="button"
+                disabled={mengirim}
+                onClick={() => {
+                  setIsian(null);
+                  setGalat(null);
+                }}
+                className="min-h-11 text-sm font-medium underline underline-offset-4"
+              >
                 Batal
               </button>
             </form>
