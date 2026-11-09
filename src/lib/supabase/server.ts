@@ -1,9 +1,13 @@
 import { cookies } from 'next/headers';
+import { connection } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { envSupabasePublik, opsiCookieSesi } from './cookie';
 
 /** Klien dengan sesi pengguna dan kunci anon. Seluruh kuerinya tunduk pada RLS. */
 export async function buatKlienServer() {
+  // Klien auth membaca Date.now() untuk masa berlaku token begitu dibuat. Saat runtime
+  // prerender cookies() sudah terisi, jadi tanpa connection() Next menolak nilai waktu itu.
+  await connection();
   const toko = await cookies();
   const { url, kunciAnon } = envSupabasePublik();
   return createServerClient(url, kunciAnon, {
