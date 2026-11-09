@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { connection } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
@@ -34,7 +35,9 @@ export type Penalang = { id: string; email: string; nama: string };
  * Sesi Supabase saja tidak cukup: pengguna auth tanpa baris di profiles bukan penalang,
  * dan sesinya diakhiri.
  */
-export async function ambilPenalang(): Promise<Penalang | null> {
+// cache(): layout dan halaman dalam satu permintaan berbagi satu pemeriksaan, bukan dua
+// putaran ke Supabase. Di luar render (Server Action) setiap panggilan tetap berjalan sendiri.
+export const ambilPenalang = cache(async function ambilPenalang(): Promise<Penalang | null> {
   const db = await buatKlienServer();
   const { data: klaim } = await db.auth.getClaims();
   const uid = klaim?.claims.sub;
@@ -50,4 +53,4 @@ export async function ambilPenalang(): Promise<Penalang | null> {
     return null;
   }
   return profil;
-}
+});

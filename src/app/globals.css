@@ -12,6 +12,49 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+ * Token gaya visual (docs/gaya-visual.md), satu-satunya tempat nilainya ditulis.
+ * Berawalan tl- supaya tidak mengubah layar lama yang belum dipindahkan (T-11b).
+ */
+@theme {
+  --color-tl-latar: #f6f4ee;
+  --color-tl-permukaan: #ffffff;
+  --color-tl-permukaan-redup: #fbfaf6;
+  --color-tl-garis: #e4e0d5;
+  --color-tl-garis-halus: #efece3;
+  --color-tl-garis-medan: #cfcabd;
+  --color-tl-teks: #1c1b17;
+  --color-tl-teks-sekunder: #4f4b42;
+  --color-tl-teks-redup: #6a665b;
+  --color-tl-aksi: #0b5c4d;
+  --color-tl-nonaktif: #d8d4c8;
+  --color-tl-perhatian: #ffefb8;
+  --color-tl-perhatian-teks: #4a3000;
+  --color-tl-lama: #9a4a00;
+  --color-tl-galat: #9a2a12;
+  --color-tl-lunas: #d9f0e0;
+  --color-tl-lunas-teks: #11602f;
+  --color-tl-menunggu: #ffefb8;
+  --color-tl-menunggu-teks: #6b4700;
+  --color-tl-belum: #ece9e1;
+  --color-tl-belum-teks: #4f4b42;
+
+  --text-tl-angka: 44px;
+  --text-tl-angka--line-height: 1.1;
+  --text-tl-nominal: 17px;
+  --text-tl-nama: 16px;
+  --text-tl-isi: 15px;
+  --text-tl-label: 13px;
+  --text-tl-lencana: 12px;
+
+  --radius-tl-kartu: 14px;
+  --radius-tl-tombol: 12px;
+}
+
+@theme inline {
+  --font-jakarta: var(--font-plus-jakarta), system-ui, sans-serif;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
