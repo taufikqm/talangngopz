@@ -27,29 +27,17 @@ Dirancang untuk satu tangan, sambil berdiri di kasir, dengan sinyal jelek.
 
 ## 1. `/login`
 
-Satu medan surel, satu tombol.
+Surel dan password, satu tombol. Tidak ada halaman daftar; akun penalang dibuat
+manual di dasbor Supabase.
 
 | Keadaan | Tampilan |
 | --- | --- |
-| Awal | Medan surel, tombol **Kirim tautan masuk** |
-| Terkirim | "Cek surel kamu. Tautannya berlaku 1 jam." Tombol jadi hitung mundur 60 detik |
-| Ditolak | "Surel ini belum terdaftar sebagai penalang." Tanpa memberi tahu surel mana yang ada |
+| Awal | Medan surel, medan password (`type="password"`), tombol **Masuk** |
+| Gagal | "Surel atau password salah." |
 
-Hanya surel yang ada di `profiles` boleh masuk.
-
-> **Diganti keputusan T-04:** bagian ini tidak berlaku lagi. Magic link diganti
-> surel + password (`signInWithPassword`), sehingga keadaan *Terkirim* dan hitung
-> mundur kirim ulang tidak dibangun. Tidak ada halaman daftar; akun penalang dibuat
-> manual di dasbor Supabase.
->
-> | Keadaan | Tampilan |
-> | --- | --- |
-> | Awal | Medan surel, medan password (`type="password"`), tombol **Masuk** |
-> | Gagal | "Surel atau password salah." |
->
-> Pesan *Gagal* sama persis untuk surel tak dikenal, password salah, dan akun yang
-> tidak ada di `profiles` (sesinya langsung diakhiri), supaya tidak membocorkan siapa
-> yang terdaftar. Keadaan *Ditolak* di atas tidak dibangun.
+Hanya pengguna yang ada di `profiles` boleh masuk. Pesan *Gagal* sama persis untuk
+surel tak dikenal, password salah, dan akun yang tidak ada di `profiles` (sesinya
+langsung diakhiri), supaya tidak membocorkan siapa yang terdaftar.
 
 ---
 
@@ -60,9 +48,10 @@ Layar yang paling sering dibuka. Menjawab satu pertanyaan: **siapa yang masih ut
 **Susunan dari atas:**
 
 1. Satu angka besar: total piutang seluruh orang.
-2. Bila ada yang berstatus `menunggu_konfirmasi`, muncul kartu kuning paling atas:
-   "3 klaim menunggu konfirmasi kamu" dengan tombol langsung ke daftarnya.
-   Ini butuh tindakan penalang, jadi dipisah dari sisanya.
+2. Bila ada klaim berstatus `menunggu`, muncul kartu kuning paling atas:
+   "2 klaim menunggu konfirmasi kamu" dengan tombol langsung ke daftarnya.
+   Yang dihitung **klaim**, bukan share. Ini butuh tindakan penalang, jadi
+   dipisah dari sisanya.
 3. Daftar anggota, diurutkan dari piutang terbesar. Tiap baris:
    nama, nominal, umur piutang tertua dalam hari, jumlah event.
 4. Umur lebih dari 14 hari: nominalnya diberi penanda teks "sudah 18 hari",
@@ -151,8 +140,10 @@ atasnya menyebut berapa yang tersisa: "4 unit belum ditandai."
 
 Daftar porsi, satu baris per orang: nama, nominal, lencana status.
 
-Baris berstatus `menunggu_konfirmasi` naik ke atas dan menampilkan dua tombol:
-`Konfirmasi` dan `Tolak`. Menolak membuka isian alasan, wajib diisi.
+Klaim yang menunggu tampil sebagai kartu di atas daftar, untuk share yang menjadi
+bagiannya: "Dika · Rp235.000 · 14:20 · BCA a.n. Dika · untuk Futsal, Kopi Kenangan".
+Tiap kartu punya dua tombol, `Konfirmasi` dan `Tolak`, yang berlaku untuk seluruh
+klaim. Menolak membuka isian alasan, wajib diisi.
 
 Baris `belum_bayar` punya menu kelebihan berisi `Tandai lunas (tunai)`.
 
@@ -200,9 +191,13 @@ Dibuka tanpa akun. **Tidak boleh ada tombol masuk, tidak boleh ada ajakan daftar
 2. Tujuan transfer: nomor rekening dengan tombol salin satu ketukan, dan gambar
    QRIS yang bisa diperbesar.
 3. Daftar per event: judul, tanggal, nominal, status.
-4. Tiap baris `belum_bayar` punya tombol `Sudah bayar`.
-   Setelah ditekan, berubah jadi lencana `Menunggu konfirmasi Arjuna`
-   beserta jam klaimnya. Tombolnya hilang, bukan sekadar nonaktif.
+4. Tiap baris `belum_bayar` punya kotak centang. Bila ada yang dicentang, bilah
+   bawah menampilkan "Bayar Rp235.000 (2 event)". Event dari penalang berbeda
+   tidak bisa dicentang bersamaan; tampilkan keterangan singkat. Menekan bilah
+   membuka isian **jam transfer** (bawaan: sekarang) dan **nama pengirim atau
+   bank** (bawaan: nama panggilan), lalu tombol **Saya sudah transfer**. Event
+   yang sudah dalam klaim `menunggu` menampilkan lencana
+   `Menunggu konfirmasi Arjuna` beserta jam klaim, tanpa kotak centang.
 5. Baris `lunas` menampilkan tanggal pelunasan dan tidak punya tombol.
 
 **Yang tidak boleh tampil:** surel siapa pun, nomor WhatsApp anggota lain,
