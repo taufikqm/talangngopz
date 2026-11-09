@@ -42,6 +42,19 @@ export function porsiRata(total: Rupiah, urut: readonly PesertaUrut[]): Map<stri
   });
 }
 
+/**
+ * Porsi Rp0 tidak dibuat di mode mana pun: peserta tanpa nominal tidak berutang.
+ * Peserta pertama tidak pernah terbuang karena ia pemegang sisa pembulatan, jadi
+ * pembulatanKe dan status lunas penalang tetap menunjuk urut[0].
+ */
+export function buangPorsiNol(
+  porsi: ReadonlyMap<string, Porsi>,
+  urut: readonly PesertaUrut[],
+): { porsi: Map<string, Porsi>; urut: PesertaUrut[] } {
+  const berutang = new Map([...porsi].filter(([, p]) => p.total > 0));
+  return { porsi: berutang, urut: urut.filter((p) => berutang.has(p.id)) };
+}
+
 /** "5 orang × Rp30.000", atau rincian penanggung sisa bila tidak habis dibagi. */
 export function teksPratinjau(total: Rupiah, urut: readonly PesertaUrut[], memberPenalang: string | null): string {
   if (urut.length === 0) return 'Pilih siapa yang ikut';
@@ -50,6 +63,8 @@ export function teksPratinjau(total: Rupiah, urut: readonly PesertaUrut[], membe
   const dasar = bagian[bagian.length - 1];
   if (bagian[0] === dasar) return `${urut.length} orang × ${rupiah(dasar)}`;
   const penanggung = urut[0].id === memberPenalang ? 'kamu' : urut[0].namaPanggilan;
+  // Bagian Rp0 tidak disimpan, jadi "12 orang × Rp0" akan menyesatkan.
+  if (dasar === 0) return `Total lebih kecil dari jumlah orang: hanya ${penanggung} yang kebagian ${rupiah(bagian[0])}`;
   return `${urut.length} orang × ${rupiah(dasar)}, ${penanggung} ${rupiah(bagian[0])}`;
 }
 

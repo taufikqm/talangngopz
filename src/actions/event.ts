@@ -14,6 +14,7 @@ import {
   PANJANG_JUDUL_MAKS,
   TOTAL_MAKS,
   barisItemManual,
+  buangPorsiNol,
   porsiManual,
   porsiPerItem,
   porsiRata,
@@ -158,11 +159,12 @@ function hitung(v: Tervalidasi, peserta: PesertaUrut[], memberPenalang: string):
     const nama = new Map(peserta.map((p) => [p.id, p.namaPanggilan]));
     const { porsi, urut } = porsiPerItem(v.unit, nama, memberPenalang);
     // Penanggung unit gratis saja tidak berutang apa pun; tidak dibuatkan porsi.
-    const berutang = new Map([...porsi].filter(([, p]) => p.total > 0));
-    return { porsi: berutang, urut: urut.filter((p) => berutang.has(p.id)) };
+    return buangPorsiNol(porsi, urut);
   }
   const urut = urutkanPeserta(peserta, memberPenalang);
-  return { porsi: v.mode === 'manual' ? porsiManual(v.nominal, v.total, urut) : porsiRata(v.total, urut), urut };
+  if (v.mode === 'manual') return { porsi: porsiManual(v.nominal, v.total, urut), urut };
+  // Total lebih kecil dari jumlah peserta menyisakan bagian Rp0; tidak dibuatkan porsi.
+  return buangPorsiNol(porsiRata(v.total, urut), urut);
 }
 
 export const buatEvent: BuatEvent = async (m): Promise<Hasil<BuatEventKeluaran>> => {
