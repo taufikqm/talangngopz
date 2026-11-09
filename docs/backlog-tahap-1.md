@@ -126,6 +126,9 @@ di Tahap 2. Pecah baris `qty > 1` memakai `uraiKeUnit()`.
 
 ## T-07b · Migrasi 0004: klaim pembayaran
 
+**Status:** selesai. Bukti: commit `3bbc68c`, `0004` terpasang di remote,
+`pnpm test` 233 lulus tanpa skipped.
+
 **Tergantung:** T-07
 
 Berkas baru `supabase/migrations/0004_klaim_pembayaran.sql`. Jangan mengubah
@@ -271,6 +274,8 @@ membuat bentuk galat baru di luar `KodeGalat`.
 **Tergantung:** T-09
 
 Halaman `/` dari tampilan `v_piutang`, sesuai spesifikasi antarmuka bagian 2.
+
+**Catatan:** `v_piutang` harus menyaring porsi Rp0.
 
 **Selesai bila:**
 - Kartu kuning paling atas menghitung **klaim** yang menunggu, bukan share:
