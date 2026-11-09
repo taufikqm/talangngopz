@@ -55,6 +55,23 @@ export type PorsiRingkas = {
 };
 
 // ---------------------------------------------------------------------------
+// Autentikasi penalang
+// ---------------------------------------------------------------------------
+
+/**
+ * masuk — surel + password. Tidak ada pendaftaran; akun penalang dibuat manual.
+ * Surel tak dikenal, password salah, dan pengguna tanpa baris di profiles
+ * menerima galat yang sama persis, agar daftar penalang tidak dapat ditebak.
+ */
+export type Masuk = (m: {
+  email: string;
+  password: string;
+}) => Promise<Hasil<null>>;
+
+/** Mengakhiri sesi penalang. */
+export type Keluar = () => Promise<Hasil<null>>;
+
+// ---------------------------------------------------------------------------
 // Aksi penalang
 // ---------------------------------------------------------------------------
 

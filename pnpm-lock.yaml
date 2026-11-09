@@ -166,6 +166,12 @@ importers:
 
   .:
     dependencies:
+      '@supabase/ssr':
+        specifier: ^0.12.7
+        version: 0.12.7(@supabase/supabase-js@2.119.0)
+      '@supabase/supabase-js':
+        specifier: 2.119.0
+        version: 2.119.0
       next:
         specifier: 16.4.5
         version: 16.4.5(@babel/core@7.29.13(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -175,10 +181,10 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
-      '@supabase/supabase-js':
-        specifier: ^2.119.0
-        version: 2.119.0
       '@tailwindcss/turbopack':
         specifier: ^4
         version: 4.3.5
@@ -723,6 +729,11 @@ packages:
     resolution: {integrity: sha512-fPzxt+SAYweqsZUCSZma2dvN+HT6lVjwWj8BbkVwapW6wNf1odUi+ATYN7svX4Zm9vt0kz0l0VzINAUAA38FEg==}
     engines: {node: '>=22.0.0'}
 
+  '@supabase/ssr@0.12.7':
+    resolution: {integrity: sha512-wiBtEie1KkRJi9RrZWY3R2imRhX1JY7qMyUCH2z9AUk15gQebNEplM+urbCKamdxaTJLXUU6LlpkJsaxhojCEg==}
+    peerDependencies:
+      '@supabase/supabase-js': ^2.114.0
+
   '@supabase/storage-js@2.119.0':
     resolution: {integrity: sha512-htx1dSCnSJVPlx2BNSgLSUDvLMxuGbYa6pUPl5xoCs4as4cIhBVwuxj78zbggCyPHxLnEXjsV/qvlDsVjpodKw==}
     engines: {node: '>=22.0.0'}
@@ -1193,6 +1204,10 @@ packages:
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
+
+  cookie@1.1.1:
+    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
+    engines: {node: '>=18'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -2110,6 +2125,9 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
+
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
     engines: {node: '>= 0.4'}
@@ -2859,6 +2877,11 @@ snapshots:
       '@supabase/phoenix': 0.4.5
       tslib: 2.8.1
 
+  '@supabase/ssr@0.12.7(@supabase/supabase-js@2.119.0)':
+    dependencies:
+      '@supabase/supabase-js': 2.119.0
+      cookie: 1.1.1
+
   '@supabase/storage-js@2.119.0':
     dependencies:
       iceberg-js: 0.8.1
@@ -3302,6 +3325,8 @@ snapshots:
   concat-map@0.0.1: {}
 
   convert-source-map@2.0.0: {}
+
+  cookie@1.1.1: {}
 
   cross-spawn@7.0.6:
     dependencies:
@@ -4375,6 +4400,8 @@ snapshots:
   semver@6.3.2: {}
 
   semver@7.8.6: {}
+
+  server-only@0.0.1: {}
 
   set-function-length@1.2.2:
     dependencies:

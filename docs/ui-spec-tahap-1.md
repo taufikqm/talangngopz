@@ -37,6 +37,20 @@ Satu medan surel, satu tombol.
 
 Hanya surel yang ada di `profiles` boleh masuk.
 
+> **Diganti keputusan T-04:** bagian ini tidak berlaku lagi. Magic link diganti
+> surel + password (`signInWithPassword`), sehingga keadaan *Terkirim* dan hitung
+> mundur kirim ulang tidak dibangun. Tidak ada halaman daftar; akun penalang dibuat
+> manual di dasbor Supabase.
+>
+> | Keadaan | Tampilan |
+> | --- | --- |
+> | Awal | Medan surel, medan password (`type="password"`), tombol **Masuk** |
+> | Gagal | "Surel atau password salah." |
+>
+> Pesan *Gagal* sama persis untuk surel tak dikenal, password salah, dan akun yang
+> tidak ada di `profiles` (sesinya langsung diakhiri), supaya tidak membocorkan siapa
+> yang terdaftar. Keadaan *Ditolak* di atas tidak dibangun.
+
 ---
 
 ## 2. `/` — Dasbor piutang
