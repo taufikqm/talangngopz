@@ -1,8 +1,12 @@
 // Verifikasi RLS jalur penalang (T-03). Sengaja memakai kunci anon + sesi akun uji,
 // bukan service_role atau MCP: keduanya melewati RLS sehingga tidak membuktikan apa pun.
 // Tes ini berjalan terhadap proyek Supabase nyata dan butuh kredensial di .env.local.
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+
+// Tiap tes memanggil jaringan beberapa kali; batas bawaan 5 detik pernah terlampaui saat
+// jaringan lambat. Timeout bukan bukti RLS benar atau salah, jadi diberi ruang lebih.
+vi.setConfig({ testTimeout: 30_000 });
 
 try {
   process.loadEnvFile('.env.local');
@@ -37,12 +41,20 @@ async function masuk(label: 'A' | 'B'): Promise<Akun> {
   const db = createClient(URL_SUPABASE, KUNCI_ANON, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data, error } = await db.auth.signInWithPassword({
-    email: wajib(`TEST_${label}_EMAIL`),
-    password: wajib(`TEST_${label}_PASSWORD`),
-  });
-  if (error || !data.user) throw new Error(`Masuk sebagai ${label} gagal: ${error?.message}`);
-  return { label, db, uid: data.user.id, memberId: '', eventId: '', shareId: '', itemId: '' };
+  // Koneksi pertama ke Supabase sesekali melewati batas sambung 10 detik. Hanya galat
+  // jaringan yang dicoba ulang; kredensial salah tetap langsung gagal.
+  for (let percobaan = 1; ; percobaan++) {
+    const { data, error } = await db.auth.signInWithPassword({
+      email: wajib(`TEST_${label}_EMAIL`),
+      password: wajib(`TEST_${label}_PASSWORD`),
+    });
+    if (!error && data.user) {
+      return { label, db, uid: data.user.id, memberId: '', eventId: '', shareId: '', itemId: '' };
+    }
+    if (error?.name !== 'AuthRetryableFetchError' || percobaan >= 3) {
+      throw new Error(`Masuk sebagai ${label} gagal: ${error?.message}`);
+    }
+  }
 }
 
 async function sisip(db: SupabaseClient, tabel: string, baris: Record<string, unknown>): Promise<string> {
@@ -140,7 +152,8 @@ describe.each([
       const hapus = await s.db.from('events').delete().eq('id', l.eventId).select('id');
       expect(hapus.data ?? []).toEqual([]);
 
-      const { data } = await l.db.from('events').select('judul, total').eq('id', l.eventId).single();
+      const { data, error } = await l.db.from('events').select('judul, total').eq('id', l.eventId).single();
+      expect(error).toBeNull();
       expect(data).toEqual({ judul: `${PENANDA}-${lawan}`, total: NOMINAL });
     });
   });
@@ -169,7 +182,8 @@ describe.each([
       const hapus = await s.db.from('shares').delete().eq('id', l.shareId).select('id');
       expect(hapus.data ?? []).toEqual([]);
 
-      const { data } = await l.db.from('shares').select('status, total').eq('id', l.shareId).single();
+      const { data, error } = await l.db.from('shares').select('status, total').eq('id', l.shareId).single();
+      expect(error).toBeNull();
       expect(data).toEqual({ status: 'belum_bayar', total: NOMINAL });
     });
   });
@@ -197,7 +211,8 @@ describe.each([
       const hapus = await s.db.from('bill_items').delete().eq('id', l.itemId).select('id');
       expect(hapus.data ?? []).toEqual([]);
 
-      const { data } = await l.db.from('bill_items').select('subtotal').eq('id', l.itemId).single();
+      const { data, error } = await l.db.from('bill_items').select('subtotal').eq('id', l.itemId).single();
+      expect(error).toBeNull();
       expect(data).toEqual({ subtotal: NOMINAL });
     });
   });
@@ -263,7 +278,8 @@ describe.each([
       const hapus = await s.db.from('v_piutang').delete().eq('member_id', l.memberId).select('member_id');
       expect(hapus.data ?? []).toEqual([]);
 
-      const { data } = await l.db.from('v_piutang').select('belum_bayar').eq('member_id', l.memberId).single();
+      const { data, error } = await l.db.from('v_piutang').select('belum_bayar').eq('member_id', l.memberId).single();
+      expect(error).toBeNull();
       expect(data).toEqual({ belum_bayar: NOMINAL });
     });
   });
