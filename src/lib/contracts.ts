@@ -135,6 +135,20 @@ export type SimpanAnggota = (m: {
   aktif?: boolean;
 }) => Promise<Hasil<Anggota>>;
 
+/**
+ * Hanya untuk anggota tanpa porsi. Anggota yang masih dirujuk shares ditolak
+ * basis data (foreign key) dan dibalas 'konflik'; jalan keluarnya menonaktifkan.
+ */
+export type HapusAnggota = (m: {
+  memberId: string;
+}) => Promise<Hasil<null>>;
+
+/** Baris halaman /anggota. `punyaPorsi` hanya menghitung porsi yang terlihat lewat RLS. */
+export type AnggotaDaftar = Anggota & {
+  tautan: string;
+  punyaPorsi: boolean;
+};
+
 /** Membuat ulang token pribadi anggota. Tautan lama langsung mati. */
 export type CabutToken = (m: {
   memberId: string;
