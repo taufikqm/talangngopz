@@ -49,6 +49,7 @@ let D: Sesi;
 const anggota: Record<string, { id: string; token: string }> = {};
 const porsi: Record<string, string> = {};
 const eventDibuat: { db: SupabaseClient; id: string }[] = [];
+const eventMassal: string[] = [];
 
 async function buatEvent(s: Sesi, nama: string, tanggal: string, isi: Record<string, number>) {
   const total = Object.values(isi).reduce((a, b) => a + b, 0);
@@ -81,6 +82,8 @@ beforeAll(async () => {
 
   await buatEvent(C, 'futsal', '2026-10-20', { budi: 20_000, citra: 10_000, lunas: 5_000 });
   await buatEvent(C, 'kopi', '2026-11-08', { budi: 15_000 });
+  // Porsi Rp0 milik budi pada event yang tetap berutang bagi citra: tidak boleh menambah jumlah event budi.
+  await buatEvent(C, 'nol', '2026-11-02', { budi: 0, citra: 10_000 });
   await buatEvent(D, 'bakso', '2026-11-01', { milikD: 12_000 });
   // Porsi "lunas" dilunasi penalang C lewat sesinya: anggota itu tidak boleh muncul di dasbor.
   expect((await C.db.from('shares').update({ status: 'lunas', settled_at: new Date().toISOString() }).eq('id', porsi['futsal:lunas'])).error).toBeNull();
@@ -92,6 +95,10 @@ afterAll(async () => {
   for (const { db, id } of eventDibuat) {
     const { error } = await db.from('events').delete().eq('id', id);
     if (error && !GALAT_BERSIH_WAJAR.has(error.code)) galat.push(`events: ${error.code} ${error.message}`);
+  }
+  if (eventMassal.length > 0) {
+    const { error } = await C.db.from('events').delete().in('id', eventMassal);
+    if (error && !GALAT_BERSIH_WAJAR.has(error.code)) galat.push(`events massal: ${error.code} ${error.message}`);
   }
   for (const { id } of Object.values(anggota)) {
     const { error } = await C.db.from('members').delete().eq('id', id);
@@ -134,6 +141,36 @@ describe('RLS v_piutang dan dasbor', () => {
     const budi = d.anggota.find((a) => a.memberId === anggota.budi.id);
     expect(budi).toMatchObject({ total: 35_000, jumlahEvent: 2, umurHari: 21 });
     expect(budi?.rincian.map((r) => r.shareId)).toEqual([porsi['futsal:budi'], porsi['kopi:budi']]);
+  });
+
+  it('dimuat di bawah 1,5 detik dengan 500 baris shares', async () => {
+    // Anggota khusus, supaya total anggota uji lain tidak berubah.
+    const kunci = ['massal1', 'massal2', 'massal3', 'massal4'];
+    const baru = await C.db
+      .from('members')
+      .insert(kunci.map((k) => ({ nama_panggilan: `${PENANDA}-${k}` })))
+      .select('id, nama_panggilan, access_token');
+    expect(baru.error).toBeNull();
+    for (const r of baru.data ?? []) anggota[String(r.nama_panggilan).slice(PENANDA.length + 1)] = { id: String(r.id), token: String(r.access_token) };
+    const jumlahEvent = 125;
+    const ev = await C.db
+      .from('events')
+      .insert(Array.from({ length: jumlahEvent }, (_, i) => ({ payer_id: C.uid, judul: `${PENANDA}-massal-${i}`, tanggal: '2026-11-03', subtotal: 40_000, total: 40_000 })))
+      .select('id');
+    expect(ev.error).toBeNull();
+    for (const r of ev.data ?? []) eventMassal.push(String(r.id));
+    const baris = await C.db
+      .from('shares')
+      .insert(eventMassal.flatMap((id) => kunci.map((k) => ({ event_id: id, member_id: anggota[k].id, subtotal: 10_000, total: 10_000 }))))
+      .select('id');
+    expect(baris.error).toBeNull();
+    expect(baris.data?.length).toBe(jumlahEvent * kunci.length);
+
+    const mulai = performance.now();
+    const d = await muatDasbor(C.db, C.uid, HARI_INI);
+    const durasi = performance.now() - mulai;
+    expect(d.keadaan).toBe('piutang');
+    expect(durasi).toBeLessThan(1_500);
   });
 
   it('kartu kuning menghitung klaim, bukan porsi: satu klaim berisi dua porsi menambah 1', async () => {

@@ -277,6 +277,11 @@ membuat bentuk galat baru di luar `KodeGalat`.
 
 ## T-10 · Dasbor piutang
 
+**Status:** selesai. Bukti: `pnpm test` 311 lulus tanpa skipped, termasuk uji
+500 baris `shares` di bawah 1,5 detik. Tombol kartu kuning ke daftar klaim
+ditunda ke T-11, karena tujuannya belum ada. `v_piutang` masih menghitung porsi
+Rp0 pada `jumlah_event`; dasbor mengabaikan kolom itu.
+
 **Tergantung:** T-09
 
 Halaman `/` dari tampilan `v_piutang`, sesuai spesifikasi antarmuka bagian 2.

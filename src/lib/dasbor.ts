@@ -86,7 +86,8 @@ export function susunDasbor(
         belumBayar: Number(v.belum_bayar),
         menunggu: Number(v.menunggu),
         total: Number(v.belum_bayar) + Number(v.menunggu),
-        jumlahEvent: Number(v.jumlah_event),
+        // Dari rincian, bukan v_piutang.jumlah_event: view itu masih menghitung porsi Rp0.
+        jumlahEvent: rincian.length,
         umurHari: Math.max(0, selisihHari(tertua, hariIni)),
         rincian,
       };

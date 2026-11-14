@@ -51,6 +51,18 @@ describe('susunDasbor', () => {
     expect(d.anggota[0].rincian.map((r) => r.shareId)).toEqual(['s2']);
   });
 
+  it('jumlah event tidak menghitung porsi Rp0 walau view melaporkannya', () => {
+    const d = susunDasbor(
+      [view('m1', 'Budi', 10_000, 0, 3)],
+      [porsi('s1', 'm1', 10_000, '2026-11-08'), porsi('s2', 'm1', 0, '2026-11-05'), porsi('s3', 'm1', 0, '2026-11-01')],
+      0,
+      3,
+      '2026-11-10',
+    );
+    if (d.keadaan !== 'piutang') throw new Error('harus piutang');
+    expect(d.anggota[0]).toMatchObject({ jumlahEvent: 1, umurHari: 2 });
+  });
+
   it('urut dari piutang terbesar; total = belum bayar + menunggu; umur dari tanggal event tertua', () => {
     const d = susunDasbor(
       [view('m1', 'Budi', 10_000, 0, 1), view('m2', 'Citra', 5_000, 20_000, 2)],
