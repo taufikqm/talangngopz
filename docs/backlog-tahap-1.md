@@ -315,6 +315,13 @@ menampilkan klaim, tanpa tombol hapus di mana pun.
 
 ## T-12 · Teks tagihan
 
+**Status:** selesai. Bukti: `pnpm test` 341 lulus tanpa skipped, termasuk uji
+sesi C dan D sungguhan (`tagihan.db.test.ts`). Teks per anggota memuat tautan
+pribadi; teks "semua" sengaja tanpa tautan (satu teks gabungan di grup akan
+membagikan tautan semua orang). Di Vercel, `SITE_URL` wajib diisi URL
+produksi; bila kosong tombol menampilkan "Tautan belum bisa dibuat. Hubungi
+admin."
+
 **Tergantung:** T-10
 
 Aksi `buatTeksTagihan`. Menghasilkan teks siap tempel ke WhatsApp berisi nama,

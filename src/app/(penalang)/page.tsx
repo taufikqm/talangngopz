@@ -5,8 +5,10 @@ import { LencanaStatus } from '@/components/lencana-status';
 import { GalatDasbor, labelUmur, muatDasbor, type BarisPiutang, type Dasbor } from '@/lib/dasbor';
 import { hariIni } from '@/lib/event';
 import { ambilPenalang, buatKlienServer } from '@/lib/supabase/server';
+import { porsiBelumBayar } from '@/lib/tagihan';
 import { tampilTanggal } from '@/lib/tanggal';
 import { rupiah } from '@/lib/uang';
+import { TombolSalin } from './tombol-salin';
 
 function KartuAnggota({ a }: { a: BarisPiutang }) {
   const umur = labelUmur(a.umurHari);
@@ -56,6 +58,11 @@ function KartuAnggota({ a }: { a: BarisPiutang }) {
             );
           })}
         </ul>
+        {porsiBelumBayar(a.rincian).length > 0 && (
+          <div className="rounded-b-tl-kartu border-t border-tl-garis-halus bg-tl-permukaan-redup px-4 py-3">
+            <TombolSalin memberId={a.memberId} label="Salin tagihan" />
+          </div>
+        )}
       </details>
     </li>
   );
@@ -86,6 +93,11 @@ function IsiDasbor({ d }: { d: Dasbor }) {
               Total piutang
             </h1>
             <p className="text-tl-angka font-extrabold tabular-nums">{rupiah(d.totalPiutang)}</p>
+            {d.anggota.some((a) => porsiBelumBayar(a.rincian).length > 0) && (
+              <div className="mt-2">
+                <TombolSalin label="Salin semua tagihan" />
+              </div>
+            )}
           </section>
           <section aria-labelledby="judul-anggota" className="flex flex-col gap-2">
             <h2 id="judul-anggota" className="text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup">
