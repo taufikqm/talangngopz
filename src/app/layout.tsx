@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { jakarta } from "./fonts";
@@ -14,8 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "talangngopz",
+  title: "Talangan",
   description: "Pencatat talangan sirkel",
+  // iOS tidak membaca ikon dari manifest; apple-touch-icon dan appleWebApp membuat
+  // "Tambah ke Layar Utama" membuka layar penuh dengan ikon yang benar.
+  icons: { apple: "/ikon/180" },
+  appleWebApp: { capable: true, title: "Talangan", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B5C4D",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

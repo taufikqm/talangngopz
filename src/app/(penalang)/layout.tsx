@@ -1,6 +1,8 @@
 import { Suspense, type ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { ambilPenalang } from '@/lib/supabase/server';
+import { DaftarSw } from '../daftar-sw';
+import { SpandukLuring } from './spanduk-luring';
 import { TombolKeluar } from './tombol-keluar';
 
 // Proxy sudah mengalihkan tanpa sesi, tetapi proxy hanya pemeriksaan optimistis.
@@ -31,8 +33,12 @@ function Kerangka() {
 
 export default function LayoutPenalang({ children }: LayoutProps<'/'>) {
   return (
-    <Suspense fallback={<Kerangka />}>
-      <PenjagaSesi>{children}</PenjagaSesi>
-    </Suspense>
+    <>
+      <SpandukLuring />
+      <DaftarSw />
+      <Suspense fallback={<Kerangka />}>
+        <PenjagaSesi>{children}</PenjagaSesi>
+      </Suspense>
+    </>
   );
 }

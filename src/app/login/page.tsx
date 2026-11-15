@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DaftarSw } from '../daftar-sw';
 import { FormulirMasuk } from './formulir-masuk';
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function HalamanMasuk() {
         <p className="text-sm text-zinc-700 dark:text-zinc-300">Khusus penalang.</p>
       </div>
       <FormulirMasuk />
+      <DaftarSw />
     </main>
   );
 }

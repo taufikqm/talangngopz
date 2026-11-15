@@ -334,6 +334,22 @@ benar-benar bisa dibuka.
 
 ## T-13 · PWA
 
+**Status:** kode selesai, **belum ditutup**: butir perangkat nyata (di bawah) menunggu
+pemasangan oleh pemilik. Bukti di Chrome sungguhan terhadap build produksi:
+`Page.getInstallabilityErrors` kosong, manifest tanpa galat, service worker aktif;
+dengan jaringan dimatikan (halaman dan service worker), navigasi ke `/login`,
+`/anggota`, dan `/me/[token]` menampilkan `/offline.html`, dan spanduk muncul lalu
+hilang mengikuti peristiwa `online`/`offline`; Cache Storage hanya berisi
+`/offline.html` dan `/ikon/192` setelah membuka dasbor, `/anggota`, dan `/me/[token]`.
+`sw.test.ts` menjaga aturan itu. Kategori PWA sudah tidak ada di Lighthouse 12 ke
+atas, jadi "installable" dibuktikan lewat Chrome langsung.
+
+Catatan rancangan: yang disinggahkan hanya halaman luring dan ikonnya. HTML dasbor
+dan halaman peserta tidak pernah disimpan (salinan basi menampilkan utang yang sudah
+berubah). Spanduk luring sengaja tidak menjanjikan penyimpanan luring; kalimat
+"Event tetap bisa disimpan dan akan terkirim nanti" baru dipakai bila T-18 ada.
+Setelah mengubah `public/sw.js`, naikkan `VERSI` di dalamnya.
+
 **Tergantung:** T-12
 
 Manifest, ikon 192 dan 512, service worker.
@@ -343,6 +359,13 @@ Manifest, ikon 192 dan 512, service worker.
 - Mode pesawat menampilkan kerangka plus spanduk, bukan galat peramban
 - Terpasang di Chrome Android dan Safari iOS pada perangkat nyata
 - Halaman peserta **tidak** disinggahkan
+
+**Daftar periksa perangkat nyata (dikerjakan pemilik, setelah deploy):**
+- [ ] Chrome Android: menu "Instal aplikasi" muncul, ikon "T" hijau di layar utama,
+      terbuka tanpa bilah alamat
+- [ ] Safari iOS: Bagikan → "Tambah ke Layar Utama", ikon benar, terbuka layar penuh
+- [ ] Mode pesawat setelah terpasang: layar "Tidak ada sambungan", bukan galat peramban
+- [ ] Buka satu `/me/[token]` lalu mode pesawat: tidak ada nominal yang tampil
 
 ---
 

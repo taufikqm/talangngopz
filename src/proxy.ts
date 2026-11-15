@@ -86,7 +86,9 @@ function keLogin(request: NextRequest, respons: NextResponse): NextResponse {
 export const config = {
   // API bertoken tidak memakai sesi penalang, jadi tidak dilewatkan ke sini. Halaman
   // peserta (/bill, /me) lewat untuk pemeriksaan token, tanpa menyentuh sesi.
+  // Berkas PWA (sw.js, offline.html, ikon/) harus terbaca tanpa sesi: peramban mengambilnya
+  // tanpa cookie, dan halaman luring harus tetap terbuka saat sesi tidak bisa diperiksa.
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|api/|ikon/|sw\\.js$|offline\\.html$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
   ],
 };
