@@ -371,6 +371,20 @@ Manifest, ikon 192 dan 512, service worker.
 
 ## T-14 · Cron penjaga
 
+**Status:** kode selesai, **belum ditutup**: dua langkah di Vercel (di bawah) menunggu
+pemilik. Bukti: `route.db.test.ts` (5 uji, kueri nyata ke Supabase) dan `curl` ke server
+dev: tanpa header atau header salah 401, header benar 200 `{"ok":true}` dengan
+`Cache-Control: private, no-store`. Rute memakai kunci anon (hitung-head atas `profiles`,
+RLS membuatnya 0 tanpa galat), bukan `service_role`. Jadwal `0 3 * * *` UTC (sekitar
+10.00 WIB), sekali sehari karena paket gratis Vercel hanya mengizinkan itu. `CRON_SECRET`
+kosong berarti semua pemanggilan 401 dan satu baris galat dicatat.
+
+**Daftar periksa Vercel (dikerjakan pemilik, setelah deploy):**
+- [ ] Isi `CRON_SECRET` di Environment Variables proyek (acak, panjang; Vercel
+      mengirimnya otomatis sebagai header Bearer)
+- [ ] Dasbor Vercel → Cron Jobs: entri `/api/cron/keepalive` terdaftar; "Run" sekali
+      dan hasilnya 200
+
 **Tergantung:** T-13
 
 `GET /api/cron/keepalive`, dilindungi `Authorization: Bearer $CRON_SECRET`.
