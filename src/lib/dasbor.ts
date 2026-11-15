@@ -9,7 +9,8 @@ import type { Rupiah } from './uang';
 
 export const BATAS_UMUR_LAMA = 14;
 
-export type RincianPorsi = { shareId: string; judul: string; tanggal: string; total: Rupiah; status: ShareStatus };
+// eventId diisi muatDasbor, bukan susunDasbor: susunDasbor hanya tahu kolom yang diuji.
+export type RincianPorsi = { shareId: string; eventId?: string; judul: string; tanggal: string; total: Rupiah; status: ShareStatus };
 
 export type BarisPiutang = {
   memberId: string;
@@ -122,14 +123,19 @@ export async function muatDasbor(db: SupabaseClient, penalangId: string, hariIni
     db.from('events').select('id', { count: 'exact', head: true }).eq('payer_id', penalangId),
     db
       .from('shares')
-      .select('id, member_id, total, status, events!inner(judul, tanggal)')
+      .select('id, event_id, member_id, total, status, events!inner(judul, tanggal)')
       .eq('events.payer_id', penalangId)
       .neq('status', 'lunas')
       .gt('total', 0)
-      .returns<BarisPorsi[]>(),
+      .returns<(BarisPorsi & { event_id: string })[]>(),
   ]);
   for (const h of [view, klaim, event, porsi]) {
     if (h.error) throw new GalatDasbor(h.error.code ?? 'tidak_dikenal');
   }
-  return susunDasbor(view.data ?? [], porsi.data ?? [], klaim.count ?? 0, event.count ?? 0, hariIni);
+  const dasbor = susunDasbor(view.data ?? [], porsi.data ?? [], klaim.count ?? 0, event.count ?? 0, hariIni);
+  if (dasbor.keadaan === 'piutang') {
+    const idEvent = new Map((porsi.data ?? []).map((p) => [p.id, p.event_id]));
+    for (const a of dasbor.anggota) for (const r of a.rincian) r.eventId = idEvent.get(r.shareId);
+  }
+  return dasbor;
 }

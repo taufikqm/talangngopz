@@ -299,6 +299,10 @@ Halaman `/` dari tampilan `v_piutang`, sesuai spesifikasi antarmuka bagian 2.
 
 ## T-11 · Rincian event dan riwayat
 
+**Status:** selesai. Bukti: `pnpm test` 328 lulus tanpa skipped, termasuk uji
+sesi C dan D sungguhan (`rincian-event.db.test.ts`). Tombol kartu kuning T-10
+menuju `/klaim`, dan baris rincian dasbor menuju `/event/[id]`. Tanpa migrasi.
+
 **Tergantung:** T-10
 
 Halaman `/event/[id]`. Klaim tampil sebagai kartu untuk share yang menjadi

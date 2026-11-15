@@ -1,24 +1,12 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { redirect, unstable_rethrow } from 'next/navigation';
+import { LencanaStatus } from '@/components/lencana-status';
 import { GalatDasbor, labelUmur, muatDasbor, type BarisPiutang, type Dasbor } from '@/lib/dasbor';
 import { hariIni } from '@/lib/event';
 import { ambilPenalang, buatKlienServer } from '@/lib/supabase/server';
+import { tampilTanggal } from '@/lib/tanggal';
 import { rupiah } from '@/lib/uang';
-import type { ShareStatus } from '@/lib/contracts';
-
-const LENCANA: Record<ShareStatus, { label: string; kelas: string }> = {
-  belum_bayar: { label: 'Belum bayar', kelas: 'bg-tl-belum text-tl-belum-teks' },
-  menunggu_konfirmasi: { label: 'Menunggu konfirmasi', kelas: 'bg-tl-menunggu text-tl-menunggu-teks' },
-  lunas: { label: 'Lunas', kelas: 'bg-tl-lunas text-tl-lunas-teks' },
-};
-
-/** "9 Nov 2026" dari kolom date. */
-function tampilTanggal(tanggal: string): string {
-  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-    .format(new Date(`${tanggal}T00:00:00Z`))
-    .replace('.', '');
-}
 
 function KartuAnggota({ a }: { a: BarisPiutang }) {
   const umur = labelUmur(a.umurHari);
@@ -41,20 +29,32 @@ function KartuAnggota({ a }: { a: BarisPiutang }) {
           <span aria-hidden className="text-tl-teks-redup transition-transform group-open:rotate-90">›</span>
         </summary>
         <ul className="divide-y divide-tl-garis-halus border-t border-tl-garis-halus bg-tl-permukaan-redup px-4 rounded-b-tl-kartu">
-          {a.rincian.map((r) => (
-            <li key={r.shareId} className="flex items-center gap-3 py-3">
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-tl-isi font-semibold">{r.judul}</span>
-                <span className="text-tl-label text-tl-teks-redup">{tampilTanggal(r.tanggal)}</span>
-              </span>
-              <span className="flex shrink-0 flex-col items-end gap-1">
-                <span className="text-tl-isi font-bold tabular-nums">{rupiah(r.total)}</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-tl-lencana font-bold ${LENCANA[r.status].kelas}`}>
-                  {LENCANA[r.status].label}
+          {a.rincian.map((r) => {
+            const isi = (
+              <>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-tl-isi font-semibold">{r.judul}</span>
+                  <span className="text-tl-label text-tl-teks-redup">{tampilTanggal(r.tanggal)}</span>
                 </span>
-              </span>
-            </li>
-          ))}
+                <span className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="text-tl-isi font-bold tabular-nums">{rupiah(r.total)}</span>
+                  <LencanaStatus status={r.status} />
+                </span>
+              </>
+            );
+            return (
+              <li key={r.shareId}>
+                {r.eventId ? (
+                  <Link href={`/event/${r.eventId}`} className="flex min-h-11 items-center gap-3 py-3">
+                    {isi}
+                    <span aria-hidden className="text-tl-teks-redup">›</span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3 py-3">{isi}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </details>
     </li>
@@ -65,9 +65,13 @@ function IsiDasbor({ d }: { d: Dasbor }) {
   return (
     <>
       {d.klaimMenunggu > 0 && (
-        <p className="rounded-tl-kartu bg-tl-perhatian px-4 py-3 text-tl-isi font-bold text-tl-perhatian-teks">
-          {d.klaimMenunggu} klaim menunggu konfirmasi kamu
-        </p>
+        <Link
+          href="/klaim"
+          className="flex min-h-12 items-center justify-between gap-3 rounded-tl-kartu bg-tl-perhatian px-4 py-3 text-tl-isi font-bold text-tl-perhatian-teks"
+        >
+          <span>{d.klaimMenunggu} klaim menunggu konfirmasi kamu</span>
+          <span className="shrink-0">Lihat ›</span>
+        </Link>
       )}
       {d.keadaan === 'kosong' && (
         <p className="text-tl-isi text-tl-teks-sekunder">
