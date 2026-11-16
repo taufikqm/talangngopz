@@ -200,8 +200,16 @@ NEXT_PUBLIC_SUPABASE_URL=https://REF_DEV.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 CRON_SECRET=
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+SITE_URL=http://localhost:3000
 ```
+
+`SITE_URL` dipakai di sisi server untuk menyusun tautan pribadi peserta
+(`/me/[token]`) di teks tagihan. Sengaja tanpa awalan `NEXT_PUBLIC_`. Di
+Vercel isi dengan URL produksi, misalnya `https://nama-proyek.vercel.app`
+(garis miring di akhir dibuang otomatis); bila kosong, tombol salin tagihan per
+anggota menampilkan "Tautan belum bisa dibuat. Hubungi admin." Di Vercel,
+`CRON_SECRET` juga wajib diisi (nilai acak yang panjang), karena jalur
+`/api/cron/keepalive` menolak semua pemanggilan bila kosong.
 
 Periksa sekali lagi: `SUPABASE_SERVICE_ROLE_KEY` tidak berawalan
 `NEXT_PUBLIC_`. Awalan itu menanamkan nilainya ke berkas JavaScript yang
