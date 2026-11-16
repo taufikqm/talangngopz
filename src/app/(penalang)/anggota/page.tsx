@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import type { AnggotaDaftar } from '@/lib/contracts';
 import { daftarAnggota, tautanPribadi } from '@/lib/anggota';
@@ -25,7 +26,10 @@ async function muatAnggota(): Promise<AnggotaDaftar[] | null> {
 export default async function HalamanAnggota() {
   const anggota = await muatAnggota();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 pt-2 pb-6">
+      <Link href="/" className="-mb-2 inline-flex min-h-11 items-center self-start font-semibold">
+        ‹ Dasbor
+      </Link>
       <div className="flex items-baseline justify-between gap-2">
         <h1 className="text-2xl font-semibold">Anggota</h1>
         {anggota && <span className="text-sm text-zinc-700 dark:text-zinc-300">{anggota.length} orang</span>}
