@@ -20,9 +20,10 @@ async function PenjagaSesi({ children }: { children: ReactNode }) {
           <span className="truncate text-tl-label font-semibold text-tl-teks-sekunder">{penalang.nama}</span>
           <TombolKeluar />
         </div>
-        <MenuUtama klaimMenunggu={klaimMenunggu} />
       </header>
-      {children}
+      {/* Pembungkus mengisi sisa tinggi layar supaya menu (sticky di dasar) tetap di dasar pada halaman pendek. */}
+      <div className="flex flex-1 flex-col">{children}</div>
+      <MenuUtama klaimMenunggu={klaimMenunggu} />
     </>
   );
 }

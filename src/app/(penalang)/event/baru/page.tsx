@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { ambilPenalang, buatKlienServer } from '@/lib/supabase/server';
 import { FormulirEvent, type PesertaPilihan } from './formulir-event';
@@ -31,7 +32,11 @@ async function muat(): Promise<{ anggota: PesertaPilihan[]; memberPenalang: stri
 export default async function HalamanEventBaru() {
   const data = await muat();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-5">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2">
+      {/* Menu bawah disembunyikan di layar ini; jalan kembali lewat sini. */}
+      <Link href="/" className="inline-flex min-h-11 items-center self-start text-tl-isi font-bold text-tl-aksi">
+        ‹ Batal
+      </Link>
       <h1 className="text-[24px] font-extrabold">Talangan baru</h1>
       {data ? (
         <FormulirEvent anggota={data.anggota} memberPenalang={data.memberPenalang} />

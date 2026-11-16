@@ -154,19 +154,11 @@ function Kerangka() {
 export default function HalamanDasbor() {
   return (
     <div className="flex flex-1 flex-col bg-tl-latar font-jakarta text-tl-teks">
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-5 pt-5 pb-28">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-5 pt-5 pb-8">
         <Suspense fallback={<Kerangka />}>
           <Isi />
         </Suspense>
       </main>
-      <div className="sticky bottom-0 border-t border-tl-garis bg-tl-latar px-5 py-3">
-        <Link
-          href="/event/baru"
-          className="mx-auto flex min-h-13 w-full max-w-md items-center justify-center rounded-tl-tombol bg-tl-aksi text-[16px] font-bold text-white"
-        >
-          + Talangan baru
-        </Link>
-      </div>
     </div>
   );
 }

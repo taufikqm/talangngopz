@@ -54,11 +54,14 @@ manifest adalah `/`. Rute penalang lain tanpa sesi tetap dialihkan ke `/login`.
 
 Layar yang paling sering dibuka. Menjawab satu pertanyaan: **siapa yang masih utang.**
 
-**Menu penalang (semua layar bersesi):** bilah tab di bawah baris nama, di atas isi
-layar: `Beranda · Klaim · Anggota`. Di atas, bukan di bawah, karena bagian bawah dipakai
-tombol aksi utama. Tab aktif bertanda `aria-current` dan garis bawah; tab Klaim memuat
-jumlah klaim menunggu sebagai angka bertulisan. Halaman di bawah satu tab (rincian event,
-Talangan baru) tidak mengaktifkan tab apa pun.
+**Menu penalang (semua layar bersesi):** bilah bawah tetap dengan ikon dan label teks:
+`Beranda · Klaim · (＋ Baru) · Anggota`. Tombol bulat hijau di tengah membuka Talangan baru,
+jadi aksi utama satu ketukan dari layar mana pun; ia menggantikan tombol "+ Talangan baru"
+penuh lebar. Tab aktif hijau dan bertanda `aria-current`. Lencana jumlah klaim menunggu
+ada di sudut ikon Klaim, dengan teks tersembunyi untuk pembaca layar. Halaman di bawah satu
+tab (rincian event) tidak mengaktifkan tab apa pun. Bilah mengikuti area aman iOS
+(`env(safe-area-inset-bottom)`). **Disembunyikan di `/event/baru`** supaya bilah Simpan
+memakai dasar layar sendirian; jalan kembali lewat tautan "‹ Batal" di atas judul.
 
 **Susunan dari atas:**
 
@@ -72,7 +75,7 @@ Talangan baru) tidak mengaktifkan tab apa pun.
 4. Umur lebih dari 14 hari: nominalnya diberi penanda teks "sudah 18 hari",
    bukan hanya diwarnai.
 
-**Tombol aksi utama:** `+ Talangan baru`, menempel di bawah layar.
+**Tombol aksi utama:** `Baru` (＋) di tengah menu bawah, lihat di atas.
 
 | Keadaan | Tampilan |
 | --- | --- |

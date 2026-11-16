@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0B5C4D",
+  // Agar env(safe-area-inset-bottom) terisi di iOS: menu bawah tidak tertutup garis home.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
