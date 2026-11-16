@@ -31,12 +31,12 @@ async function muat(): Promise<{ anggota: PesertaPilihan[]; memberPenalang: stri
 export default async function HalamanEventBaru() {
   const data = await muat();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-4">
-      <h1 className="text-2xl font-semibold">Talangan baru</h1>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-5">
+      <h1 className="text-[24px] font-extrabold">Talangan baru</h1>
       {data ? (
         <FormulirEvent anggota={data.anggota} memberPenalang={data.memberPenalang} />
       ) : (
-        <p role="alert" className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">
+        <p role="alert" className="mt-4 text-tl-isi font-semibold text-tl-galat">
           Daftar anggota gagal dimuat. Muat ulang halaman sebentar lagi.
         </p>
       )}

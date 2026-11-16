@@ -2,27 +2,16 @@
 
 import { useMemo, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import type { BuatEventMasukan, PorsiRingkas, ShareStatus, SplitMode } from '@/lib/contracts';
+import type { BuatEventMasukan, PorsiRingkas, SplitMode } from '@/lib/contracts';
 import { TOTAL_MAKS, barisItemManual, hariIni, judulBawaan, ringkasManual, ringkasPerItem, teksPratinjau, teksSelisih, urutkanPeserta } from '@/lib/event';
 import { uraiKeUnit, type BarisItem } from '@/lib/parser';
 import { rupiah } from '@/lib/uang';
 import { buatEvent } from '@/actions/event';
 import { pratinjauImpor } from '@/actions/impor';
 import { CONTOH_TABEL } from '@/lib/impor';
+import { LencanaStatus } from '@/components/lencana-status';
 
 export type PesertaPilihan = { id: string; namaPanggilan: string };
-
-const LABEL_STATUS: Record<ShareStatus, string> = {
-  belum_bayar: 'Belum bayar',
-  menunggu_konfirmasi: 'Menunggu konfirmasi',
-  lunas: 'Lunas',
-};
-
-const KELAS_STATUS: Record<ShareStatus, string> = {
-  belum_bayar: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-50',
-  menunggu_konfirmasi: 'bg-amber-200 text-amber-950 dark:bg-amber-800 dark:text-amber-50',
-  lunas: 'bg-green-200 text-green-950 dark:bg-green-800 dark:text-green-50',
-};
 
 const MODE: { nilai: SplitMode; label: string }[] = [
   { nilai: 'rata', label: 'Rata' },
@@ -31,9 +20,19 @@ const MODE: { nilai: SplitMode; label: string }[] = [
 ];
 
 const DIGIT_MAKS = String(TOTAL_MAKS).length;
-const KELAS_MEDAN =
-  'min-h-11 w-full rounded-lg border border-zinc-400 bg-white px-3 text-base dark:border-zinc-600 dark:bg-zinc-900';
-const KELAS_GALAT = 'text-sm text-red-700 dark:text-red-400';
+// Gaya Beranda (docs/gaya-visual.md): semua warna dan ukuran dari token tl-* di globals.css.
+const KELAS_MEDAN = 'min-h-12 w-full rounded-tl-tombol border-[1.5px] border-tl-garis-medan bg-tl-permukaan px-3 text-[16px] text-tl-teks';
+const KELAS_KOTAK_ANGKA = 'flex items-center rounded-tl-tombol border-[1.5px] border-tl-garis-medan bg-tl-permukaan px-2';
+const KELAS_GALAT = 'text-tl-label font-semibold text-tl-galat';
+const KELAS_LABEL = 'text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup';
+const KELAS_PETUNJUK = 'text-tl-isi text-tl-teks-sekunder';
+const KELAS_KARTU = 'rounded-tl-kartu border border-tl-garis bg-tl-permukaan';
+const KELAS_SPANDUK = 'rounded-tl-kartu bg-tl-perhatian p-3 text-tl-isi font-semibold text-tl-perhatian-teks';
+const KELAS_TAUTAN = 'font-bold text-tl-aksi underline underline-offset-4';
+const KELAS_TOMBOL_UTAMA =
+  'min-h-12 rounded-tl-tombol bg-tl-aksi px-4 text-[16px] font-bold text-white disabled:bg-tl-nonaktif disabled:text-tl-teks-redup';
+const KELAS_TOMBOL_SEKUNDER =
+  'min-h-12 rounded-tl-tombol border-[1.5px] border-tl-aksi bg-tl-permukaan px-4 text-[16px] font-bold text-tl-aksi disabled:border-tl-garis-medan disabled:text-tl-teks-redup';
 
 /** Hanya digit, tanpa nol di depan, dibatasi panjangnya. Nilai tetap bilangan bulat rupiah. */
 const keDigit = (s: string) => s.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, DIGIT_MAKS);
@@ -49,8 +48,8 @@ type Impor = { cocokQty: boolean; jumlahAwal: number; totalTercetak: number | nu
 function Lencana({ ok, children }: { ok: boolean; children: ReactNode }) {
   return (
     <span
-      className={`rounded-full px-3 py-1 text-sm font-medium ${
-        ok ? 'bg-green-200 text-green-950 dark:bg-green-800 dark:text-green-50' : 'bg-red-200 text-red-950 dark:bg-red-900 dark:text-red-50'
+      className={`rounded-full px-3 py-1 text-tl-label font-bold ${
+        ok ? 'bg-tl-lunas text-tl-lunas-teks' : 'border-[1.5px] border-tl-galat bg-tl-permukaan text-tl-galat'
       }`}
     >
       {children}
@@ -64,10 +63,8 @@ function KancingNama({ aktif, label, onClick }: { aktif: boolean; label: string;
       type="button"
       aria-pressed={aktif}
       onClick={onClick}
-      className={`min-h-11 rounded-full border px-4 text-base ${
-        aktif
-          ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900'
-          : 'border-zinc-400 bg-white text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50'
+      className={`min-h-11 rounded-full border-[1.5px] px-4 text-tl-nama font-semibold ${
+        aktif ? 'border-tl-aksi bg-tl-aksi text-white' : 'border-tl-garis-medan bg-tl-permukaan text-tl-teks'
       }`}
     >
       {aktif ? '✓ ' : ''}
@@ -273,25 +270,25 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
     const jumlah = tersimpan.porsi.reduce((a, p) => a + p.total, 0);
     return (
       <section aria-live="polite" className="mt-4 flex flex-col gap-4">
-        <p className="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-950 dark:border-green-800 dark:bg-green-950 dark:text-green-50">
+        <p className="rounded-tl-kartu bg-tl-lunas p-3 text-tl-isi text-tl-lunas-teks">
           <strong>{tersimpan.judul}</strong> tersimpan. Total {rupiah(jumlah)} untuk {tersimpan.porsi.length} orang.
         </p>
-        <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <ul className={`flex flex-col divide-y divide-tl-garis-halus ${KELAS_KARTU}`}>
           {tersimpan.porsi.map((p) => (
-            <li key={p.shareId} className="flex items-center justify-between gap-2 px-3 py-2">
-              <span className="truncate">{p.namaPanggilan}</span>
+            <li key={p.shareId} className="flex items-center justify-between gap-2 px-4 py-3">
+              <span className="truncate text-tl-nama font-bold">{p.namaPanggilan}</span>
               <span className="flex shrink-0 items-center gap-2">
-                <span className="tabular-nums">{rupiah(p.total)}</span>
-                <span className={`rounded px-1.5 text-xs ${KELAS_STATUS[p.status]}`}>{LABEL_STATUS[p.status]}</span>
+                <span className="text-tl-nominal font-bold tabular-nums">{rupiah(p.total)}</span>
+                <LencanaStatus status={p.status} />
               </span>
             </li>
           ))}
         </ul>
         <div className="flex gap-2">
-          <Link href="/" className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-zinc-400 px-4 font-medium dark:border-zinc-600">
+          <Link href="/" className={`flex flex-1 items-center justify-center ${KELAS_TOMBOL_SEKUNDER}`}>
             Ke dasbor
           </Link>
-          <button type="button" onClick={buatLagi} className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 font-medium text-white dark:bg-zinc-50 dark:text-zinc-900">
+          <button type="button" onClick={buatLagi} className={`flex-1 ${KELAS_TOMBOL_UTAMA}`}>
             Talangan lain
           </button>
         </div>
@@ -302,13 +299,13 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
   return (
     <form onSubmit={simpan} className="mt-4 flex flex-1 flex-col gap-5">
       {!memberPenalang && (
-        <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50">
+        <p role="alert" className={KELAS_SPANDUK}>
           Akunmu belum terhubung ke data anggota, jadi talangan belum bisa disimpan. Isi kolom profile_id milikmu di tabel members.
         </p>
       )}
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="judul" className="text-sm font-medium">Judul</label>
+        <label htmlFor="judul" className={KELAS_LABEL}>Judul</label>
         <input
           id="judul"
           value={judul}
@@ -326,22 +323,22 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
       <div className="flex flex-col gap-1">
         {ubahTanggal ? (
           <>
-            <label htmlFor="tanggal" className="text-sm font-medium">Tanggal</label>
+            <label htmlFor="tanggal" className={KELAS_LABEL}>Tanggal</label>
             <input id="tanggal" type="date" value={tanggal} onChange={(e) => gantiTanggal(e.target.value)} className={KELAS_MEDAN} />
           </>
         ) : (
-          <button type="button" onClick={() => setUbahTanggal(true)} className="flex min-h-11 items-center gap-2 self-start text-sm">
-            <span className="text-zinc-700 dark:text-zinc-300">Tanggal: {tanggal === hariIni() ? 'hari ini' : tanggal}</span>
-            <span className="font-medium underline underline-offset-4">Ubah</span>
+          <button type="button" onClick={() => setUbahTanggal(true)} className="flex min-h-11 items-center gap-2 self-start text-tl-isi">
+            <span className="text-tl-teks-sekunder">Tanggal: {tanggal === hariIni() ? 'hari ini' : tanggal}</span>
+            <span className={KELAS_TAUTAN}>Ubah</span>
           </button>
         )}
         {galat?.medan.tanggal && <p className={KELAS_GALAT}>{galat.medan.tanggal}</p>}
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="total" className="text-sm font-medium">Total dibayar</label>
-        <div className="flex items-center rounded-lg border border-zinc-400 bg-white px-3 dark:border-zinc-600 dark:bg-zinc-900">
-          <span className="text-2xl font-semibold text-zinc-700 dark:text-zinc-300">Rp</span>
+        <label htmlFor="total" className={KELAS_LABEL}>Total dibayar</label>
+        <div className={`${KELAS_KOTAK_ANGKA} px-3`}>
+          <span className="text-[22px] font-extrabold text-tl-teks-redup">Rp</span>
           <input
             id="total"
             inputMode="numeric"
@@ -351,7 +348,7 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
             onChange={(e) => setDigitTotal(keDigit(e.target.value))}
             placeholder="0"
             aria-invalid={galat?.medan.total ? true : undefined}
-            className="min-h-16 w-full bg-transparent px-2 text-right text-3xl font-semibold tabular-nums outline-none"
+            className="min-h-16 w-full bg-transparent px-2 text-right text-[32px] font-extrabold tabular-nums text-tl-teks outline-none"
           />
         </div>
         {galat?.medan.total && <p className={KELAS_GALAT}>{galat.medan.total}</p>}
@@ -359,14 +356,14 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
 
       <fieldset className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <legend className="text-sm font-medium">Siapa yang ikut</legend>
-          <button type="button" onClick={pilihSemua} disabled={anggota.length === 0} className="min-h-11 px-2 text-sm font-medium underline underline-offset-4">
+          <legend className={KELAS_LABEL}>Siapa yang ikut</legend>
+          <button type="button" onClick={pilihSemua} disabled={anggota.length === 0} className={`min-h-11 px-2 text-tl-label ${KELAS_TAUTAN} disabled:text-tl-teks-redup`}>
             {semuaTerpilih ? 'Batal pilih semua' : 'Pilih semua'}
           </button>
         </div>
         {anggota.length === 0 ? (
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">
-            Belum ada anggota aktif. <Link href="/anggota" className="font-medium underline underline-offset-4">Tambah anggota</Link>
+          <p className={KELAS_PETUNJUK}>
+            Belum ada anggota aktif. <Link href="/anggota" className={KELAS_TAUTAN}>Tambah anggota</Link>
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -379,8 +376,8 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
       </fieldset>
 
       <div className="flex flex-col gap-3">
-        <span id="label-cara-bagi" className="text-sm font-medium">Cara bagi</span>
-        <div role="tablist" aria-labelledby="label-cara-bagi" className="grid grid-cols-3 gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
+        <span id="label-cara-bagi" className={KELAS_LABEL}>Cara bagi</span>
+        <div role="tablist" aria-labelledby="label-cara-bagi" className="grid grid-cols-3 gap-1 rounded-tl-tombol bg-tl-belum p-1">
           {MODE.map((m) => (
             <button
               key={m.nilai}
@@ -388,7 +385,7 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
               role="tab"
               aria-selected={mode === m.nilai}
               onClick={() => setMode(m.nilai)}
-              className={`min-h-11 rounded-md text-sm font-medium ${mode === m.nilai ? 'bg-white shadow-sm dark:bg-zinc-900' : 'text-zinc-700 dark:text-zinc-300'}`}
+              className={`min-h-11 rounded-[9px] text-tl-isi font-bold ${mode === m.nilai ? 'bg-tl-permukaan text-tl-aksi shadow-sm' : 'text-tl-teks-sekunder'}`}
             >
               {m.label}
             </button>
@@ -397,12 +394,12 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
 
         {mode === 'manual' && (
           <div role="tabpanel" className="flex flex-col gap-2">
-            {urut.length === 0 && <p className="text-sm text-zinc-700 dark:text-zinc-300">Pilih dulu siapa yang ikut.</p>}
+            {urut.length === 0 && <p className={KELAS_PETUNJUK}>Pilih dulu siapa yang ikut.</p>}
             {urut.map((p) => (
               <div key={p.id} className="flex items-center gap-2">
-                <label htmlFor={`nominal-${p.id}`} className="min-w-0 flex-1 truncate">{label(p.id)}</label>
-                <div className="flex w-40 items-center rounded-lg border border-zinc-400 bg-white px-2 dark:border-zinc-600 dark:bg-zinc-900">
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">Rp</span>
+                <label htmlFor={`nominal-${p.id}`} className="min-w-0 flex-1 truncate text-tl-nama font-semibold">{label(p.id)}</label>
+                <div className={`w-40 ${KELAS_KOTAK_ANGKA}`}>
+                  <span className="text-tl-label font-semibold text-tl-teks-redup">Rp</span>
                   <input
                     id={`nominal-${p.id}`}
                     inputMode="numeric"
@@ -410,13 +407,13 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                     value={tampilDigit(digitManual[p.id] ?? '')}
                     onChange={(e) => setDigitManual((lama) => ({ ...lama, [p.id]: keDigit(e.target.value) }))}
                     placeholder="0"
-                    className="min-h-11 w-full bg-transparent px-1 text-right tabular-nums outline-none"
+                    className="min-h-11 w-full bg-transparent px-1 text-right text-[16px] tabular-nums text-tl-teks outline-none"
                   />
                 </div>
               </div>
             ))}
             {urut.length > 0 && (
-              <p aria-live="polite" className={`text-right text-sm font-medium ${selisihManual === 'Pas' ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}`}>
+              <p aria-live="polite" className={`text-right text-tl-isi font-bold ${selisihManual === 'Pas' ? 'text-tl-lunas-teks' : 'text-tl-lama'}`}>
                 {selisihManual}
               </p>
             )}
@@ -429,13 +426,13 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
               <button
                 type="button"
                 onClick={() => setBukaTempel(true)}
-                className="min-h-11 self-start rounded-lg border border-zinc-900 px-4 font-medium dark:border-zinc-50"
+                className={`self-start ${KELAS_TOMBOL_SEKUNDER}`}
               >
                 Tempel dari ChatGPT
               </button>
             ) : (
-              <div className="flex flex-col gap-2 rounded-lg border border-zinc-400 p-2 dark:border-zinc-600">
-                <label htmlFor="tempel-teks" className="text-sm font-medium">Tempel jawaban ChatGPT</label>
+              <div className={`flex flex-col gap-2 p-3 ${KELAS_KARTU}`}>
+                <label htmlFor="tempel-teks" className={KELAS_LABEL}>Tempel jawaban ChatGPT</label>
                 <textarea
                   id="tempel-teks"
                   rows={8}
@@ -445,15 +442,15 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                   aria-describedby={galatTempel ? 'galat-tempel' : undefined}
                   autoComplete="off"
                   spellCheck={false}
-                  className={`${KELAS_MEDAN} py-2 font-mono text-sm`}
+                  className={`${KELAS_MEDAN} py-2 font-mono text-[14px]`}
                 />
-                {items.length > 0 && <p className="text-xs text-zinc-700 dark:text-zinc-300">Item yang sudah ada akan diganti.</p>}
+                {items.length > 0 && <p className="text-tl-label text-tl-teks-redup">Item yang sudah ada akan diganti.</p>}
                 {galatTempel && (
                   <div id="galat-tempel" role="alert" className="flex flex-col gap-2">
                     <p className={KELAS_GALAT}>{galatTempel}</p>
-                    <p className="text-xs text-zinc-700 dark:text-zinc-300">Contoh format yang terbaca:</p>
-                    <pre className="overflow-x-auto rounded bg-zinc-100 p-2 text-xs dark:bg-zinc-800">{CONTOH_TABEL}</pre>
-                    <button type="button" onClick={isiManualSaja} className="min-h-11 self-start rounded-lg border border-zinc-400 px-4 text-sm font-medium dark:border-zinc-600">
+                    <p className="text-tl-label text-tl-teks-redup">Contoh format yang terbaca:</p>
+                    <pre className="overflow-x-auto rounded-tl-tombol bg-tl-belum p-2 text-[11px] text-tl-teks">{CONTOH_TABEL}</pre>
+                    <button type="button" onClick={isiManualSaja} className={`self-start ${KELAS_TOMBOL_SEKUNDER}`}>
                       Isi manual saja
                     </button>
                   </div>
@@ -463,11 +460,11 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                     type="button"
                     onClick={uraiTabel}
                     disabled={sedangUrai || teksTempel.trim() === ''}
-                    className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 font-medium text-white disabled:bg-zinc-500 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-400"
+                    className={`flex-1 ${KELAS_TOMBOL_UTAMA}`}
                   >
                     {sedangUrai ? 'Membaca…' : 'Urai tabel'}
                   </button>
-                  <button type="button" onClick={isiManualSaja} className="min-h-11 rounded-lg border border-zinc-400 px-4 font-medium dark:border-zinc-600">
+                  <button type="button" onClick={isiManualSaja} className={KELAS_TOMBOL_SEKUNDER}>
                     Batal
                   </button>
                 </div>
@@ -492,13 +489,13 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                   <p className={KELAS_GALAT}>Jumlah item di tabel tidak sama dengan yang terbaca ({jumlahQty}).</p>
                 )}
                 {belumMasuk > 0 && (
-                  <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50">
+                  <p role="status" className={KELAS_SPANDUK}>
                     {total === impor.totalTercetak ? 'Total tercetak' : 'Total dibayar'} {rupiah(total)}, jumlah item {rupiah(jumlahItem)}. Ada {rupiah(belumMasuk)} yang belum masuk ke harga item.
                     Ubah angka item sampai jumlahnya cocok, atau tambah item &quot;Pajak&quot; lalu tandai siapa yang menanggung.
                   </p>
                 )}
                 {belumMasuk < 0 && (
-                  <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50">
+                  <p role="status" className={KELAS_SPANDUK}>
                     Jumlah item lebih {rupiah(-belumMasuk)} dari total dibayar. Periksa angka item atau total dibayar.
                   </p>
                 )}
@@ -506,20 +503,20 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
             )}
 
             {items.map((it) => (
-              <div key={it.kunci} className="flex flex-col gap-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-800">
+              <div key={it.kunci} className={`flex flex-col gap-2 p-3 ${KELAS_KARTU}`}>
                 <div className="flex items-center gap-2">
                   <input
                     aria-label={`Nama item ${it.nama}`}
                     value={it.nama}
                     maxLength={80}
                     onChange={(e) => ubahItem(it.kunci, { nama: e.target.value })}
-                    className={`${KELAS_MEDAN} min-w-0 flex-1 font-medium`}
+                    className={`${KELAS_MEDAN} min-w-0 flex-1 font-bold`}
                   />
-                  <span className="shrink-0 text-sm">× {it.qty}</span>
+                  <span className="shrink-0 text-tl-isi font-bold text-tl-teks-sekunder">× {it.qty}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex w-40 items-center rounded-lg border border-zinc-400 bg-white px-2 dark:border-zinc-600 dark:bg-zinc-900">
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Rp</span>
+                  <div className={`w-40 ${KELAS_KOTAK_ANGKA}`}>
+                    <span className="text-tl-label font-semibold text-tl-teks-redup">Rp</span>
                     <input
                       aria-label={`Harga baris ${it.nama}`}
                       inputMode="numeric"
@@ -527,32 +524,32 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                       value={tampilDigit(it.subtotal === 0 ? '' : String(it.subtotal))}
                       onChange={(e) => ubahItem(it.kunci, { digit: keDigit(e.target.value) })}
                       placeholder="0 = gratis"
-                      className="min-h-11 w-full bg-transparent px-1 text-right tabular-nums outline-none"
+                      className="min-h-11 w-full bg-transparent px-1 text-right text-[16px] tabular-nums text-tl-teks outline-none"
                     />
                   </div>
                   {it.subtotal === 0 && (
-                    <span className="rounded bg-green-200 px-1.5 text-xs text-green-950 dark:bg-green-800 dark:text-green-50">Gratis</span>
+                    <span className="rounded-full bg-tl-lunas px-2 py-0.5 text-tl-lencana font-bold text-tl-lunas-teks">Gratis</span>
                   )}
-                  <button type="button" onClick={() => hapusItem(it.kunci)} aria-label={`Hapus ${it.nama}`} className="ml-auto min-h-11 min-w-11 rounded-lg text-sm underline underline-offset-4">
+                  <button type="button" onClick={() => hapusItem(it.kunci)} aria-label={`Hapus ${it.nama}`} className="ml-auto min-h-11 min-w-11 rounded-tl-tombol text-tl-label font-bold text-tl-galat underline underline-offset-4">
                     Hapus
                   </button>
                 </div>
                 {unit
                   .filter((u) => items[u.indukIndeks]?.kunci === it.kunci)
                   .map((u) => (
-                    <div key={u.kunci} className="flex flex-col gap-1 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                      <div className="flex items-center justify-between text-sm">
+                    <div key={u.kunci} className="flex flex-col gap-1 border-t border-tl-garis-halus pt-2">
+                      <div className="flex items-center justify-between text-tl-isi">
                         <span>
                           {u.nama}
                           {u.dari > 1 ? ` (${u.ke}/${u.dari})` : ''}
                         </span>
                         <span className="flex items-center gap-2">
-                          {u.subtotal > 0 && u.penanggung.length === 0 && <span className="text-amber-800 dark:text-amber-300">Belum ditandai</span>}
-                          <span className="tabular-nums">{rupiah(u.subtotal)}</span>
+                          {u.subtotal > 0 && u.penanggung.length === 0 && <span className="font-bold text-tl-lama">Belum ditandai</span>}
+                          <span className="font-bold tabular-nums">{rupiah(u.subtotal)}</span>
                         </span>
                       </div>
                       {urut.length === 0 ? (
-                        <p className="text-xs text-zinc-700 dark:text-zinc-300">Pilih dulu siapa yang ikut.</p>
+                        <p className="text-tl-label text-tl-teks-redup">Pilih dulu siapa yang ikut.</p>
                       ) : (
                         <div className="flex flex-wrap gap-2">
                           {urut.map((p) => (
@@ -565,20 +562,20 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
               </div>
             ))}
 
-            <div className="flex flex-col gap-2 rounded-lg border border-dashed border-zinc-400 p-2 dark:border-zinc-600">
+            <div className="flex flex-col gap-2 rounded-tl-kartu border-[1.5px] border-dashed border-tl-garis-medan p-3">
               <div className="flex gap-2">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <label htmlFor="item-nama" className="text-xs font-medium">Nama item</label>
+                  <label htmlFor="item-nama" className={KELAS_LABEL}>Nama item</label>
                   <input id="item-nama" value={isianItem.nama} maxLength={80} onChange={(e) => setIsianItem((s) => ({ ...s, nama: e.target.value }))} className={KELAS_MEDAN} />
                 </div>
                 <div className="flex w-16 flex-col gap-1">
-                  <label htmlFor="item-qty" className="text-xs font-medium">Qty</label>
+                  <label htmlFor="item-qty" className={KELAS_LABEL}>Qty</label>
                   <input id="item-qty" inputMode="numeric" value={isianItem.qty} onChange={(e) => setIsianItem((s) => ({ ...s, qty: e.target.value.replace(/\D/g, '').slice(0, 2) }))} className={`${KELAS_MEDAN} text-right`} />
                 </div>
               </div>
               <div className="flex items-end gap-2">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <label htmlFor="item-harga" className="text-xs font-medium">Harga baris (semua qty)</label>
+                  <label htmlFor="item-harga" className={KELAS_LABEL}>Harga baris (semua qty)</label>
                   <input
                     id="item-harga"
                     inputMode="numeric"
@@ -588,14 +585,14 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                     className={`${KELAS_MEDAN} text-right tabular-nums`}
                   />
                 </div>
-                <button type="button" onClick={tambahItem} className="min-h-11 rounded-lg border border-zinc-900 px-4 font-medium dark:border-zinc-50">
+                <button type="button" onClick={tambahItem} className={KELAS_TOMBOL_SEKUNDER}>
                   Tambah item
                 </button>
               </div>
               {galatItem && <p className={KELAS_GALAT}>{galatItem}</p>}
             </div>
             {items.length > 0 && !impor && (
-              <p aria-live="polite" className={`text-right text-sm font-medium ${selisihItem === 'Pas' ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}`}>
+              <p aria-live="polite" className={`text-right text-tl-isi font-bold ${selisihItem === 'Pas' ? 'text-tl-lunas-teks' : 'text-tl-lama'}`}>
                 Jumlah item: {selisihItem === 'Pas' ? 'Pas dengan total' : `${selisihItem} dari total`}
               </p>
             )}
@@ -605,12 +602,12 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
         {galat?.medan.items && <p className={KELAS_GALAT}>{galat.medan.items}</p>}
       </div>
 
-      <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-2 border-t border-zinc-200 bg-white px-4 pt-3 pb-4 dark:border-zinc-800 dark:bg-black">
-        <p aria-live="polite" className="text-center text-base font-medium tabular-nums">{pratinjau}</p>
+      <div className="sticky bottom-0 -mx-5 mt-auto flex flex-col gap-2 border-t border-tl-garis bg-tl-latar px-5 pt-3 pb-4">
+        <p aria-live="polite" className="text-center text-tl-nama font-bold tabular-nums">{pratinjau}</p>
         <button
           type="submit"
           disabled={sedangSimpan || !siap}
-          className="min-h-12 w-full rounded-lg bg-zinc-900 px-4 text-base font-semibold text-white disabled:bg-zinc-500 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-400"
+          className={`min-h-13 w-full ${KELAS_TOMBOL_UTAMA}`}
         >
           {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
         </button>
