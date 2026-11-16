@@ -24,7 +24,7 @@ export function TombolKeluar() {
   return (
     <div className="flex items-center gap-2">
       {galat && (
-        <span role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <span role="alert" className="text-tl-label font-semibold text-tl-galat">
           {galat}
         </span>
       )}
@@ -32,7 +32,7 @@ export function TombolKeluar() {
         type="button"
         onClick={klik}
         disabled={sedangKeluar}
-        className="min-h-11 min-w-11 rounded-lg px-3 text-sm font-medium text-zinc-800 underline-offset-4 hover:underline disabled:text-zinc-500 dark:text-zinc-200"
+        className="min-h-11 min-w-11 rounded-tl-tombol px-3 text-tl-label font-bold text-tl-aksi hover:underline disabled:text-tl-teks-redup"
       >
         {sedangKeluar ? 'Keluar…' : 'Keluar'}
       </button>

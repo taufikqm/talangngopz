@@ -1,20 +1,24 @@
 @import "tailwindcss";
 
+/*
+ * Seluruh aplikasi terang saja, mengikuti Beranda (docs/gaya-visual.md). Varian dark: Tailwind
+ * dimatikan dengan memasangnya pada kelas yang tidak pernah dipakai, sehingga sisa kelas dark: di
+ * layar yang belum dipindahkan tidak menyala mengikuti pengaturan sistem.
+ */
+@custom-variant dark (&:where(.tema-gelap-tidak-dipakai, .tema-gelap-tidak-dipakai *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-plus-jakarta), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 /*
  * Token gaya visual (docs/gaya-visual.md), satu-satunya tempat nilainya ditulis.
- * Berawalan tl- supaya tidak mengubah layar lama yang belum dipindahkan (T-11b).
+ * Berawalan tl- supaya tidak bertabrakan dengan warna bawaan Tailwind.
  */
 @theme {
   --color-tl-latar: #f6f4ee;
@@ -55,15 +59,7 @@
   --font-jakarta: var(--font-plus-jakarta), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-tl-latar);
+  color: var(--color-tl-teks);
 }

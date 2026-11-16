@@ -15,9 +15,9 @@ async function PenjagaSesi({ children }: { children: ReactNode }) {
   const klaimMenunggu = await hitungKlaimMenunggu(await buatKlienServer(), penalang.id);
   return (
     <>
-      <header className="border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center justify-between gap-2 px-4 py-1">
-          <span className="truncate text-sm text-zinc-700 dark:text-zinc-300">{penalang.nama}</span>
+      <header className="border-b border-tl-garis bg-tl-permukaan">
+        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2 px-5 py-1">
+          <span className="truncate text-tl-label font-semibold text-tl-teks-sekunder">{penalang.nama}</span>
           <TombolKeluar />
         </div>
         <MenuUtama klaimMenunggu={klaimMenunggu} />
@@ -29,10 +29,11 @@ async function PenjagaSesi({ children }: { children: ReactNode }) {
 
 function Kerangka() {
   return (
-    <div aria-busy="true" aria-label="Memuat" className="flex flex-col gap-3 px-4 py-6">
-      <div className="h-6 w-2/3 rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-6 w-full rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-6 w-5/6 rounded bg-zinc-200 dark:bg-zinc-800" />
+    <div aria-busy="true" aria-label="Memuat" className="mx-auto flex w-full max-w-md flex-col gap-2 px-5 py-6">
+      <div className="mb-2 h-12 w-2/3 rounded-tl-tombol bg-tl-garis" />
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-16 rounded-tl-kartu border border-tl-garis bg-tl-permukaan" />
+      ))}
     </div>
   );
 }
