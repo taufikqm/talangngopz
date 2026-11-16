@@ -69,6 +69,15 @@ export function IkonEvent({ className }: Props) {
   );
 }
 
+/** Centang: penanda kancing terpilih. */
+export function IkonCentang({ className }: Props) {
+  return (
+    <Dasar className={className}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Dasar>
+  );
+}
+
 /** Tanda plus: Talangan baru. */
 export function IkonTambah({ className }: Props) {
   return (

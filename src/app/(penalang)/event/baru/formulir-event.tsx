@@ -9,6 +9,7 @@ import { rupiah } from '@/lib/uang';
 import { buatEvent } from '@/actions/event';
 import { pratinjauImpor } from '@/actions/impor';
 import { CONTOH_TABEL } from '@/lib/impor';
+import { IkonCentang } from '@/components/ikon';
 import { LencanaStatus } from '@/components/lencana-status';
 
 export type PesertaPilihan = { id: string; namaPanggilan: string };
@@ -57,18 +58,20 @@ function Lencana({ ok, children }: { ok: boolean; children: ReactNode }) {
   );
 }
 
-function KancingNama({ aktif, label, onClick }: { aktif: boolean; label: string; onClick: () => void }) {
+/** Terpilih: hijau muda seperti lencana Lunas, garis hijau aksi, ikon centang; tidak pekat supaya tidak mendominasi layar. */
+function KancingNama({ aktif, nama, kamu, onClick }: { aktif: boolean; nama: string; kamu: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={aktif}
       onClick={onClick}
-      className={`min-h-11 rounded-full border-[1.5px] px-4 text-tl-nama font-semibold ${
-        aktif ? 'border-tl-aksi bg-tl-aksi text-white' : 'border-tl-garis-medan bg-tl-permukaan text-tl-teks'
+      className={`flex min-h-11 items-center gap-1.5 rounded-full border-[1.5px] px-4 text-tl-nama ${
+        aktif ? 'border-tl-aksi bg-tl-lunas font-bold text-tl-lunas-teks' : 'border-tl-garis-medan bg-tl-permukaan font-semibold text-tl-teks'
       }`}
     >
-      {aktif ? '✓ ' : ''}
-      {label}
+      {aktif && <IkonCentang className="h-4 w-4 shrink-0" />}
+      <span>{nama}</span>
+      {kamu && <span className="text-tl-label font-semibold opacity-70">kamu</span>}
     </button>
   );
 }
@@ -368,7 +371,7 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
         ) : (
           <div className="flex flex-wrap gap-2">
             {anggota.map((a) => (
-              <KancingNama key={a.id} aktif={terpilih.has(a.id)} label={label(a.id)} onClick={() => ubahPeserta(a.id)} />
+              <KancingNama key={a.id} aktif={terpilih.has(a.id)} nama={a.namaPanggilan} kamu={a.id === memberPenalang} onClick={() => ubahPeserta(a.id)} />
             ))}
           </div>
         )}
@@ -553,7 +556,7 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
                       ) : (
                         <div className="flex flex-wrap gap-2">
                           {urut.map((p) => (
-                            <KancingNama key={p.id} aktif={u.penanggung.includes(p.id)} label={label(p.id)} onClick={() => tandaiUnit(u.kunci, p.id)} />
+                            <KancingNama key={p.id} aktif={u.penanggung.includes(p.id)} nama={p.namaPanggilan} kamu={p.id === memberPenalang} onClick={() => tandaiUnit(u.kunci, p.id)} />
                           ))}
                         </div>
                       )}
