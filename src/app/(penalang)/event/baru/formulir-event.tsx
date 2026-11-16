@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useRef, useState, useTransition, type FormEvent } from 'react';
+import { useMemo, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { BuatEventMasukan, PorsiRingkas, ShareStatus, SplitMode } from '@/lib/contracts';
 import { TOTAL_MAKS, barisItemManual, hariIni, judulBawaan, ringkasManual, ringkasPerItem, teksPratinjau, teksSelisih, urutkanPeserta } from '@/lib/event';
 import { uraiKeUnit, type BarisItem } from '@/lib/parser';
 import { rupiah } from '@/lib/uang';
 import { buatEvent } from '@/actions/event';
+import { pratinjauImpor } from '@/actions/impor';
+import { CONTOH_TABEL } from '@/lib/impor';
 
 export type PesertaPilihan = { id: string; namaPanggilan: string };
 
@@ -38,7 +40,23 @@ const keDigit = (s: string) => s.replace(/\D/g, '').replace(/^0+(?=\d)/, '').sli
 const keAngka = (digit: string) => (digit === '' ? 0 : Number(digit));
 const tampilDigit = (digit: string) => (digit === '' ? '' : Number(digit).toLocaleString('id-ID'));
 
-type ItemIsian = { kunci: number; nama: string; qty: number; subtotal: number };
+/** `valid`: dari parser saat impor, lalu dihitung ulang (habis dibagi qty) setiap kali harga disunting. */
+type ItemIsian = { kunci: number; nama: string; qty: number; subtotal: number; valid: boolean };
+
+/** Hasil impor yang tidak bisa diturunkan lagi dari daftar item yang sudah disunting. */
+type Impor = { cocokQty: boolean; jumlahAwal: number; totalTercetak: number | null };
+
+function Lencana({ ok, children }: { ok: boolean; children: ReactNode }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-sm font-medium ${
+        ok ? 'bg-green-200 text-green-950 dark:bg-green-800 dark:text-green-50' : 'bg-red-200 text-red-950 dark:bg-red-900 dark:text-red-50'
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
 
 function KancingNama({ aktif, label, onClick }: { aktif: boolean; label: string; onClick: () => void }) {
   return (
@@ -71,6 +89,11 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
   const [penanggung, setPenanggung] = useState<Record<string, string[]>>({});
   const [isianItem, setIsianItem] = useState({ nama: '', qty: '1', digit: '' });
   const [galatItem, setGalatItem] = useState<string | null>(null);
+  const [bukaTempel, setBukaTempel] = useState(false);
+  const [teksTempel, setTeksTempel] = useState('');
+  const [galatTempel, setGalatTempel] = useState<string | null>(null);
+  const [impor, setImpor] = useState<Impor | null>(null);
+  const [sedangUrai, mulaiUrai] = useTransition();
   const kunciItem = useRef(0);
   const [galat, setGalat] = useState<{ pesan: string; medan: Record<string, string> } | null>(null);
   const [tersimpan, setTersimpan] = useState<{ judul: string; porsi: PorsiRingkas[] } | null>(null);
@@ -103,6 +126,13 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
     [barisItem, items, penanggung, terpilih],
   );
   const selisihItem = teksSelisih(new Map(items.map((it) => [String(it.kunci), it.subtotal])), total);
+  const jumlahItem = items.reduce((a, it) => a + it.subtotal, 0);
+  const jumlahQty = items.reduce((a, it) => a + it.qty, 0);
+  const barisBermasalah = items.filter((it) => !it.valid).length;
+  // Positif: ada biaya yang belum masuk ke harga item. Negatif: item melebihi total.
+  const belumMasuk = total - jumlahItem;
+  // Cek jumlah item hanya bermakna selama daftar belum ada yang dihapus.
+  const tampilCekQty = impor !== null && items.length === impor.jumlahAwal;
 
   const { pratinjau, siap } =
     mode === 'rata'
@@ -136,8 +166,53 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
     if (!Number.isInteger(qty) || qty < 1 || qty > 50) return setGalatItem('Qty 1 sampai 50.');
     setGalatItem(null);
     kunciItem.current += 1;
-    setItems((lama) => [...lama, { kunci: kunciItem.current, nama, qty, subtotal: keAngka(isianItem.digit) }]);
+    const subtotal = keAngka(isianItem.digit);
+    setItems((lama) => [...lama, { kunci: kunciItem.current, nama, qty, subtotal, valid: subtotal % qty === 0 }]);
     setIsianItem({ nama: '', qty: '1', digit: '' });
+  }
+
+  function ubahItem(kunci: number, ubah: { nama?: string; digit?: string }) {
+    setItems((lama) =>
+      lama.map((it) => {
+        if (it.kunci !== kunci) return it;
+        if (ubah.digit === undefined) return { ...it, nama: ubah.nama ?? it.nama };
+        const subtotal = keAngka(ubah.digit);
+        return { ...it, nama: ubah.nama ?? it.nama, subtotal, valid: subtotal % it.qty === 0 };
+      }),
+    );
+  }
+
+  function uraiTabel() {
+    setGalatTempel(null);
+    mulaiUrai(async () => {
+      try {
+        const hasil = await pratinjauImpor({ teks: teksTempel });
+        if (!hasil.ok) return setGalatTempel(hasil.pesan);
+        const d = hasil.data;
+        const jumlah = d.items.reduce((a, it) => a + it.subtotal, 0);
+        // Baris total yang sel angkanya kosong terbaca 0; itu bukan total sungguhan.
+        const total = d.total !== null && d.total > 0 ? d.total : jumlah;
+        setItems(
+          d.items.map((it) => {
+            kunciItem.current += 1;
+            return { kunci: kunciItem.current, nama: it.nama, qty: it.qty, subtotal: it.subtotal, valid: it.valid };
+          }),
+        );
+        setPenanggung({});
+        setDigitTotal(total > 0 ? String(total) : '');
+        setImpor({ cocokQty: d.cocokQty, jumlahAwal: d.items.length, totalTercetak: d.total !== null && d.total > 0 ? d.total : null });
+        setBukaTempel(false);
+        setTeksTempel('');
+      } catch {
+        setGalatTempel('Tabel gagal dibaca. Coba lagi sebentar lagi.');
+      }
+    });
+  }
+
+  function isiManualSaja() {
+    setBukaTempel(false);
+    setGalatTempel(null);
+    setTeksTempel('');
   }
 
   function hapusItem(kunci: number) {
@@ -188,6 +263,10 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
     setDigitManual({});
     setItems([]);
     setPenanggung({});
+    setImpor(null);
+    setBukaTempel(false);
+    setTeksTempel('');
+    setGalatTempel(null);
   }
 
   if (tersimpan) {
@@ -346,17 +425,115 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
 
         {mode === 'per_item' && (
           <div role="tabpanel" className="flex flex-col gap-3">
+            {!bukaTempel ? (
+              <button
+                type="button"
+                onClick={() => setBukaTempel(true)}
+                className="min-h-11 self-start rounded-lg border border-zinc-900 px-4 font-medium dark:border-zinc-50"
+              >
+                Tempel dari ChatGPT
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2 rounded-lg border border-zinc-400 p-2 dark:border-zinc-600">
+                <label htmlFor="tempel-teks" className="text-sm font-medium">Tempel jawaban ChatGPT</label>
+                <textarea
+                  id="tempel-teks"
+                  rows={8}
+                  value={teksTempel}
+                  onChange={(e) => setTeksTempel(e.target.value)}
+                  aria-invalid={galatTempel ? true : undefined}
+                  aria-describedby={galatTempel ? 'galat-tempel' : undefined}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className={`${KELAS_MEDAN} py-2 font-mono text-sm`}
+                />
+                {items.length > 0 && <p className="text-xs text-zinc-700 dark:text-zinc-300">Item yang sudah ada akan diganti.</p>}
+                {galatTempel && (
+                  <div id="galat-tempel" role="alert" className="flex flex-col gap-2">
+                    <p className={KELAS_GALAT}>{galatTempel}</p>
+                    <p className="text-xs text-zinc-700 dark:text-zinc-300">Contoh format yang terbaca:</p>
+                    <pre className="overflow-x-auto rounded bg-zinc-100 p-2 text-xs dark:bg-zinc-800">{CONTOH_TABEL}</pre>
+                    <button type="button" onClick={isiManualSaja} className="min-h-11 self-start rounded-lg border border-zinc-400 px-4 text-sm font-medium dark:border-zinc-600">
+                      Isi manual saja
+                    </button>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={uraiTabel}
+                    disabled={sedangUrai || teksTempel.trim() === ''}
+                    className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 font-medium text-white disabled:bg-zinc-500 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-400"
+                  >
+                    {sedangUrai ? 'Membaca…' : 'Urai tabel'}
+                  </button>
+                  <button type="button" onClick={isiManualSaja} className="min-h-11 rounded-lg border border-zinc-400 px-4 font-medium dark:border-zinc-600">
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {impor && items.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <div aria-live="polite" role="group" aria-label="Pemeriksaan tabel" className="flex flex-wrap gap-2">
+                  <Lencana ok={barisBermasalah === 0}>Baris {barisBermasalah === 0 ? '✓' : '✗'}</Lencana>
+                  <Lencana ok={belumMasuk === 0}>
+                    Total {belumMasuk === 0 ? '✓' : '✗'} {rupiah(total)}
+                  </Lencana>
+                  {tampilCekQty && (
+                    <Lencana ok={impor.cocokQty}>
+                      Jumlah item {impor.cocokQty ? '✓' : '✗'} {jumlahQty}
+                    </Lencana>
+                  )}
+                </div>
+                {barisBermasalah > 0 && <p className={KELAS_GALAT}>Ada {barisBermasalah} baris yang hitungannya tidak cocok.</p>}
+                {tampilCekQty && !impor.cocokQty && (
+                  <p className={KELAS_GALAT}>Jumlah item di tabel tidak sama dengan yang terbaca ({jumlahQty}).</p>
+                )}
+                {belumMasuk > 0 && (
+                  <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50">
+                    {total === impor.totalTercetak ? 'Total tercetak' : 'Total dibayar'} {rupiah(total)}, jumlah item {rupiah(jumlahItem)}. Ada {rupiah(belumMasuk)} yang belum masuk ke harga item.
+                    Ubah angka item sampai jumlahnya cocok, atau tambah item &quot;Pajak&quot; lalu tandai siapa yang menanggung.
+                  </p>
+                )}
+                {belumMasuk < 0 && (
+                  <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-50">
+                    Jumlah item lebih {rupiah(-belumMasuk)} dari total dibayar. Periksa angka item atau total dibayar.
+                  </p>
+                )}
+              </div>
+            )}
+
             {items.map((it) => (
               <div key={it.kunci} className="flex flex-col gap-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate font-medium">
-                    {it.nama} × {it.qty}
-                  </span>
+                  <input
+                    aria-label={`Nama item ${it.nama}`}
+                    value={it.nama}
+                    maxLength={80}
+                    onChange={(e) => ubahItem(it.kunci, { nama: e.target.value })}
+                    className={`${KELAS_MEDAN} min-w-0 flex-1 font-medium`}
+                  />
+                  <span className="shrink-0 text-sm">× {it.qty}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex w-40 items-center rounded-lg border border-zinc-400 bg-white px-2 dark:border-zinc-600 dark:bg-zinc-900">
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">Rp</span>
+                    <input
+                      aria-label={`Harga baris ${it.nama}`}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      value={tampilDigit(it.subtotal === 0 ? '' : String(it.subtotal))}
+                      onChange={(e) => ubahItem(it.kunci, { digit: keDigit(e.target.value) })}
+                      placeholder="0 = gratis"
+                      className="min-h-11 w-full bg-transparent px-1 text-right tabular-nums outline-none"
+                    />
+                  </div>
                   {it.subtotal === 0 && (
                     <span className="rounded bg-green-200 px-1.5 text-xs text-green-950 dark:bg-green-800 dark:text-green-50">Gratis</span>
                   )}
-                  <span className="tabular-nums">{rupiah(it.subtotal)}</span>
-                  <button type="button" onClick={() => hapusItem(it.kunci)} aria-label={`Hapus ${it.nama}`} className="min-h-11 min-w-11 rounded-lg text-sm underline underline-offset-4">
+                  <button type="button" onClick={() => hapusItem(it.kunci)} aria-label={`Hapus ${it.nama}`} className="ml-auto min-h-11 min-w-11 rounded-lg text-sm underline underline-offset-4">
                     Hapus
                   </button>
                 </div>
@@ -417,7 +594,7 @@ export function FormulirEvent({ anggota, memberPenalang }: { anggota: PesertaPil
               </div>
               {galatItem && <p className={KELAS_GALAT}>{galatItem}</p>}
             </div>
-            {items.length > 0 && (
+            {items.length > 0 && !impor && (
               <p aria-live="polite" className={`text-right text-sm font-medium ${selisihItem === 'Pas' ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}`}>
                 Jumlah item: {selisihItem === 'Pas' ? 'Pas dengan total' : `${selisihItem} dari total`}
               </p>

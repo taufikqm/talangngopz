@@ -423,3 +423,17 @@ Jangan mulai sebelum Arjuna benar-benar memakai ledger-nya.
 | T-17 | Pencocokan nama dan dropdown wajib pilih |
 | T-18 | Simpan luring ke IndexedDB lalu sinkron |
 | T-19 | Notifikasi web push, pengingat H+3 |
+
+**Status T-16:** kode selesai, **belum ditutup**: pemeriksaan di layar 360 piksel belum
+dikerjakan karena server dev/build gagal di komputer pengembang (Node subprocess Tailwind
+mati `0xc0000409`, komit memori sistem 96%; terjadi juga pada pohon kerja bersih tanpa
+perubahan T-16). Yang sudah dibuktikan: `pratinjauImpor` (sesuai kontrak) dan
+`pratinjauDariTeks` diuji dengan fikstur nyata dan masukan jahat (qty miliaran, digit
+400 angka, 101 item); tabel `selisih = 0` tersimpan tepat sebesar total tercetak lewat
+`buatEvent`; tabel `selisih ≠ 0` ditolak `tidak_seimbang`. Rancangan: kotak tempel dan
+koreksi ada di tab Per item pada `/event/baru`, bukan rute `/event/baru/koreksi`. Alokasi
+proporsional untuk `selisih ≠ 0` sengaja belum ada (butuh `buatEvent` menerima
+pajak/diskon; keputusan terpisah). Pencocokan nama anggota adalah T-17.
+Daftar periksa pemilik: tempel `SAMPEL_INDOMIE`, cek lencana dan total `Rp222.200`; tempel
+teks bukan tabel, cek pesan dan tombol "Isi manual saja"; ubah satu harga, cek spanduk
+selisih dan tombol simpan nonaktif; semuanya terbaca di lebar 360 piksel.

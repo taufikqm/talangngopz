@@ -4,6 +4,9 @@ import { subtotalPerAnggota, type BarisItem, type Unit } from './parser';
 /** Batas atas total satu event: jauh di atas kebutuhan sirkel, jauh di bawah batas bilangan aman JS. */
 export const TOTAL_MAKS: Rupiah = 1_000_000_000;
 export const PANJANG_JUDUL_MAKS = 80;
+/** Batas mode per item. Dipakai buatEvent dan pratinjau impor supaya tabel yang lolos urai juga lolos simpan. */
+export const ITEM_MAKS = 100;
+export const QTY_MAKS = 50;
 export const ZONA_WAKTU = 'Asia/Jakarta';
 
 export type PesertaUrut = { id: string; namaPanggilan: string };

@@ -11,7 +11,9 @@ import {
 } from '@/lib/contracts';
 import { idSah } from '@/lib/anggota';
 import {
+  ITEM_MAKS,
   PANJANG_JUDUL_MAKS,
+  QTY_MAKS,
   TOTAL_MAKS,
   barisItemManual,
   buangPorsiNol,
@@ -29,8 +31,6 @@ import { GalatInvarian, type Porsi } from '@/lib/uang';
 
 const PESAN_INTERNAL = 'Event gagal disimpan. Data formulir masih ada, coba simpan lagi.';
 const PESERTA_MAKS = 50;
-const ITEM_MAKS = 100;
-const QTY_MAKS = 50;
 
 type Dasar = { judul: string; tanggal: string; total: number };
 type Tervalidasi =
