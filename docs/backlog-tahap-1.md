@@ -420,9 +420,22 @@ Jangan mulai sebelum Arjuna benar-benar memakai ledger-nya.
 | Tiket | Isi |
 | --- | --- |
 | T-16 | Kotak tempel dan layar koreksi, memakai `uraikanTabel()` |
-| T-17 | Pencocokan nama dan dropdown wajib pilih |
+| T-17 | Pencocokan nama dan dropdown wajib pilih (**ditunda**, lihat catatan di bawah tabel) |
 | T-18 | Simpan luring ke IndexedDB lalu sinkron |
 | T-19 | Notifikasi web push, pengingat H+3 |
+
+**Status T-17:** ditunda, belum dikerjakan. Alasan: `uraikanTabel` hanya membaca nama
+item, bukan nama orang, jadi tidak ada nama dari tempelan yang bisa dicocokkan
+(`namaTidakCocok` di kontrak `PratinjauImpor` selalu `[]`). Membaca nama orang berarti
+memperluas `parser.ts` yang final, dan formatnya belum pernah terlihat pada keluaran
+ChatGPT nyata. Kebutuhan "wajib pilih" sudah terpenuhi oleh T-16: kancing penanggung
+per unit, dan Simpan nonaktif selama masih ada unit "belum ditandai". Syarat membuka
+kembali: setelah beberapa pemakaian nyata, menandai orang lewat kancing terasa berat,
+dan pemilik menyerahkan satu contoh jawaban ChatGPT beserta prompt-nya yang memuat
+nama orang. Dari contoh itu dipilih: (A) kolom pemesan di tabel (butuh izin menyentuh
+`parser.ts`), atau (B) teks terpisah "siapa makan apa" dengan modul baru `src/lib/nama.ts`.
+Alias per anggota (kolom baru, migrasi `0007`) hanya bila nama pada contoh sering
+berbeda dari `nama_panggilan`, dan butuh persetujuan tersendiri.
 
 **Status T-16:** kode selesai, **belum ditutup**: pemeriksaan di layar 360 piksel belum
 dikerjakan karena server dev/build gagal di komputer pengembang (Node subprocess Tailwind
@@ -433,7 +446,7 @@ perubahan T-16). Yang sudah dibuktikan: `pratinjauImpor` (sesuai kontrak) dan
 `buatEvent`; tabel `selisih ≠ 0` ditolak `tidak_seimbang`. Rancangan: kotak tempel dan
 koreksi ada di tab Per item pada `/event/baru`, bukan rute `/event/baru/koreksi`. Alokasi
 proporsional untuk `selisih ≠ 0` sengaja belum ada (butuh `buatEvent` menerima
-pajak/diskon; keputusan terpisah). Pencocokan nama anggota adalah T-17.
+pajak/diskon; keputusan terpisah). Pencocokan nama anggota ditunda (lihat Status T-17).
 Daftar periksa pemilik: tempel `SAMPEL_INDOMIE`, cek lencana dan total `Rp222.200`; tempel
 teks bukan tabel, cek pesan dan tombol "Isi manual saja"; ubah satu harga, cek spanduk
 selisih dan tombol simpan nonaktif; semuanya terbaca di lebar 360 piksel.
