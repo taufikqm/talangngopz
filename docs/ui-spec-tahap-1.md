@@ -55,7 +55,8 @@ manifest adalah `/`. Rute penalang lain tanpa sesi tetap dialihkan ke `/login`.
 Layar yang paling sering dibuka. Menjawab satu pertanyaan: **siapa yang masih utang.**
 
 **Menu penalang (semua layar bersesi):** bilah bawah tetap dengan ikon dan label teks:
-`Beranda · Klaim · (＋ Baru) · Anggota`. Tombol bulat hijau di tengah membuka Talangan baru,
+`Beranda · Klaim · (＋ Baru) · Event · Anggota` (lima kolom, jadi tombol tengah tepat di
+tengah layar). Tombol bulat hijau di tengah membuka Talangan baru,
 jadi aksi utama satu ketukan dari layar mana pun; ia menggantikan tombol "+ Talangan baru"
 penuh lebar. Tab aktif hijau dan bertanda `aria-current`. Lencana jumlah klaim menunggu
 ada di sudut ikon Klaim, dengan teks tersembunyi untuk pembaca layar. Halaman di bawah satu
@@ -151,6 +152,22 @@ atasnya menyebut berapa yang tersisa: "4 unit belum ditandai."
 | --- | --- |
 | Gagal urai | Pesan spesifik plus contoh format benar, dan tombol `Isi manual saja` |
 | Nama tak dikenal | Dropdown pilih anggota di sebelah nama itu, bertanda merah |
+
+---
+
+## 4b. `/event` — Daftar event
+
+Semua talangan milik penalang, terbaru di atas (tanggal lalu waktu dibuat), maksimal 50.
+Satu kartu per event: judul, "5 Nov 2026 · 3 dari 5 lunas", lencana status, dan total di
+kanan. `Lunas` bila semua porsi lunas, `Menunggu konfirmasi` bila ada klaim menunggu, selain
+itu `Belum bayar`; porsi Rp0 tidak dihitung. Mengetuk kartu membuka `/event/[id]`.
+
+| Keadaan | Tampilan |
+| --- | --- |
+| Kosong | "Belum ada event. Tekan ＋ untuk mencatat talangan pertama." |
+| Muat | Kerangka 3 kartu |
+| Galat | "Daftar event gagal dimuat. Muat ulang halaman sebentar lagi." |
+| 50 event | Catatan "Menampilkan 50 event terbaru." di bawah daftar |
 
 ---
 

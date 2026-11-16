@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IkonAnggota, IkonBeranda, IkonKlaim, IkonTambah } from '@/components/ikon';
+import { IkonAnggota, IkonBeranda, IkonEvent, IkonKlaim, IkonTambah } from '@/components/ikon';
 
 const KELAS_TAB = 'flex min-h-14 flex-col items-center justify-center gap-0.5 text-tl-lencana font-bold';
 
@@ -23,7 +23,7 @@ function Tab({ href, aktif, label, ikon, catatanSr }: { href: string; aktif: boo
 
 /**
  * Menu tetap layar penalang, di dasar layar: Beranda, Klaim, tombol Talangan baru di tengah,
- * Anggota. Tombol tengah menggantikan "+ Talangan baru" penuh lebar di Beranda, jadi aksi utama
+ * Event, Anggota (lima kolom, jadi tombol tengah tepat di tengah). Tombol tengah menggantikan "+ Talangan baru" penuh lebar di Beranda, jadi aksi utama
  * satu ketukan dari layar mana pun. Disembunyikan di /event/baru supaya bilah "Simpan" memakai
  * dasar layar sendirian. Label teks selalu tampil; lencana klaim berupa angka bertulisan.
  */
@@ -40,7 +40,7 @@ export function MenuUtama({ klaimMenunggu }: { klaimMenunggu: number | null }) {
       aria-label="Menu utama"
       className="sticky bottom-0 z-20 border-t border-tl-garis bg-tl-permukaan pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="mx-auto grid w-full max-w-md grid-cols-4 items-end px-2">
+      <div className="mx-auto grid w-full max-w-md grid-cols-5 items-end px-1">
         <Tab href="/" aktif={aktif('/')} label="Beranda" ikon={<IkonBeranda />} />
         <Tab
           href="/klaim"
@@ -69,6 +69,7 @@ export function MenuUtama({ klaimMenunggu }: { klaimMenunggu: number | null }) {
             Baru<span className="sr-only"> talangan</span>
           </span>
         </Link>
+        <Tab href="/event" aktif={aktif('/event')} label="Event" ikon={<IkonEvent />} />
         <Tab href="/anggota" aktif={aktif('/anggota')} label="Anggota" ikon={<IkonAnggota />} />
       </div>
     </nav>
