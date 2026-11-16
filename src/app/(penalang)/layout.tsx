@@ -15,14 +15,10 @@ async function PenjagaSesi({ children }: { children: ReactNode }) {
   const klaimMenunggu = await hitungKlaimMenunggu(await buatKlienServer(), penalang.id);
   return (
     <>
-      <header className="border-b border-tl-garis bg-tl-permukaan">
-        <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2 px-5 py-1">
-          <span className="truncate text-tl-label font-semibold text-tl-teks-sekunder">{penalang.nama}</span>
-          <TombolKeluar />
-        </div>
-      </header>
-      {/* Pembungkus mengisi sisa tinggi layar supaya menu (sticky di dasar) tetap di dasar pada halaman pendek. */}
-      <div className="flex flex-1 flex-col">{children}</div>
+      <TombolKeluar />
+      {/* pt-12 menyisakan ruang di bawah tombol Keluar yang mengambang, supaya tidak menutup isi paling atas.
+          Pembungkus juga mengisi sisa tinggi layar supaya menu (sticky di dasar) tetap di dasar pada halaman pendek. */}
+      <div className="flex flex-1 flex-col pt-12">{children}</div>
       <MenuUtama klaimMenunggu={klaimMenunggu} />
     </>
   );
@@ -30,7 +26,7 @@ async function PenjagaSesi({ children }: { children: ReactNode }) {
 
 function Kerangka() {
   return (
-    <div aria-busy="true" aria-label="Memuat" className="mx-auto flex w-full max-w-md flex-col gap-2 px-5 py-6">
+    <div aria-busy="true" aria-label="Memuat" className="mx-auto flex w-full max-w-md flex-col gap-2 px-5 pt-14 pb-6">
       <div className="mb-2 h-12 w-2/3 rounded-tl-tombol bg-tl-garis" />
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-16 rounded-tl-kartu border border-tl-garis bg-tl-permukaan" />

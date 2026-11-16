@@ -54,6 +54,11 @@ manifest adalah `/`. Rute penalang lain tanpa sesi tetap dialihkan ke `/login`.
 
 Layar yang paling sering dibuka. Menjawab satu pertanyaan: **siapa yang masih utang.**
 
+**Tanpa bilah atas.** Nama penalang tidak ditampilkan. Tombol `Keluar` mengambang di kanan
+atas (pil putih berbayang, 44 px, tetap di tempat saat layar digulir); isi layar menyisakan
+48 px di bawahnya supaya tidak tertutup, dan spanduk luring memberi ruang di kanan untuk
+tombol itu. Saat daftar panjang digulir, tombol dapat menutupi satu baris di bawahnya.
+
 **Menu penalang (semua layar bersesi):** bilah bawah tetap dengan ikon dan label teks:
 `Beranda · Klaim · (＋ Baru) · Event · Anggota` (lima kolom, jadi tombol tengah tepat di
 tengah layar). Tombol bulat hijau di tengah membuka Talangan baru,

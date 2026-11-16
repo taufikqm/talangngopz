@@ -23,7 +23,7 @@ export function SpandukLuring() {
   );
   if (daring) return null;
   return (
-    <div role="status" className="sticky top-0 z-10 bg-tl-perhatian px-4 py-3 text-tl-label font-semibold text-tl-perhatian-teks">
+    <div role="status" className="sticky top-0 z-10 bg-tl-perhatian py-3 pr-28 pl-4 text-tl-label font-semibold text-tl-perhatian-teks">
       Kamu sedang luring. Sambungkan internet untuk melihat data terbaru.
     </div>
   );
