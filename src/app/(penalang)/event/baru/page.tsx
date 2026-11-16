@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { ambilPenalang, buatKlienServer } from '@/lib/supabase/server';
 import { FormulirEvent, type PesertaPilihan } from './formulir-event';
@@ -32,10 +31,7 @@ async function muat(): Promise<{ anggota: PesertaPilihan[]; memberPenalang: stri
 export default async function HalamanEventBaru() {
   const data = await muat();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-2">
-      <Link href="/" className="inline-flex min-h-11 items-center self-start font-semibold">
-        ‹ Dasbor
-      </Link>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-4">
       <h1 className="text-2xl font-semibold">Talangan baru</h1>
       {data ? (
         <FormulirEvent anggota={data.anggota} memberPenalang={data.memberPenalang} />

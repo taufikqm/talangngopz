@@ -109,3 +109,20 @@ export async function muatKlaimMenunggu(
       .map((e) => e.judul),
   }));
 }
+
+/**
+ * Jumlah klaim menunggu untuk lencana menu. null bila gagal: menu tidak boleh merusak
+ * halaman yang sedang dibuka hanya karena angka lencananya tidak terbaca.
+ */
+export async function hitungKlaimMenunggu(db: SupabaseClient, penalangId: string): Promise<number | null> {
+  const { count, error } = await db
+    .from('payment_claims')
+    .select('id', { count: 'exact', head: true })
+    .eq('payer_id', penalangId)
+    .eq('status', 'menunggu');
+  if (error) {
+    console.error('menu: gagal menghitung klaim menunggu', error.code ?? 'tidak_dikenal');
+    return null;
+  }
+  return count ?? 0;
+}

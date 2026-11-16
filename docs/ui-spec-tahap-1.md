@@ -41,9 +41,23 @@ langsung diakhiri), supaya tidak membocorkan siapa yang terdaftar.
 
 ---
 
+**Pengunjung tanpa sesi di `/`:** bukan layar login, melainkan halaman sambutan
+(`/sambutan`, ditayangkan di URL `/`): "Talangan", satu tombol "Masuk sebagai penalang",
+dan satu kalimat untuk peserta: "Peserta: buka tautan tagihan dari penalang kamu."
+Peserta yang memasang aplikasi dari `/me/[token]` mendarat di sini karena `start_url`
+manifest adalah `/`. Rute penalang lain tanpa sesi tetap dialihkan ke `/login`.
+
+---
+
 ## 2. `/` — Dasbor piutang
 
 Layar yang paling sering dibuka. Menjawab satu pertanyaan: **siapa yang masih utang.**
+
+**Menu penalang (semua layar bersesi):** bilah tab di bawah baris nama, di atas isi
+layar: `Beranda · Klaim · Anggota`. Di atas, bukan di bawah, karena bagian bawah dipakai
+tombol aksi utama. Tab aktif bertanda `aria-current` dan garis bawah; tab Klaim memuat
+jumlah klaim menunggu sebagai angka bertulisan. Halaman di bawah satu tab (rincian event,
+Talangan baru) tidak mengaktifkan tab apa pun.
 
 **Susunan dari atas:**
 

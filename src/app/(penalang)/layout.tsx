@@ -1,7 +1,9 @@
 import { Suspense, type ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { ambilPenalang } from '@/lib/supabase/server';
+import { hitungKlaimMenunggu } from '@/lib/klaim-penalang';
+import { ambilPenalang, buatKlienServer } from '@/lib/supabase/server';
 import { DaftarSw } from '../daftar-sw';
+import { MenuUtama } from './menu-utama';
 import { SpandukLuring } from './spanduk-luring';
 import { TombolKeluar } from './tombol-keluar';
 
@@ -10,11 +12,15 @@ import { TombolKeluar } from './tombol-keluar';
 async function PenjagaSesi({ children }: { children: ReactNode }) {
   const penalang = await ambilPenalang();
   if (!penalang) redirect('/login');
+  const klaimMenunggu = await hitungKlaimMenunggu(await buatKlienServer(), penalang.id);
   return (
     <>
-      <header className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-1 dark:border-zinc-800">
-        <span className="truncate text-sm text-zinc-700 dark:text-zinc-300">{penalang.nama}</span>
-        <TombolKeluar />
+      <header className="border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between gap-2 px-4 py-1">
+          <span className="truncate text-sm text-zinc-700 dark:text-zinc-300">{penalang.nama}</span>
+          <TombolKeluar />
+        </div>
+        <MenuUtama klaimMenunggu={klaimMenunggu} />
       </header>
       {children}
     </>

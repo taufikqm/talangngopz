@@ -28,7 +28,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 const { konfirmasiKlaim, tolakKlaim, tandaiLunasManual } = await import('@/actions/klaim');
 const { muatRincianEvent } = await import('./rincian-event');
-const { muatKlaimMenunggu, teksKlaim } = await import('./klaim-penalang');
+const { hitungKlaimMenunggu, muatKlaimMenunggu, teksKlaim } = await import('./klaim-penalang');
 const { muatDasbor } = await import('./dasbor');
 const { hariIni } = await import('./event');
 const { POST } = await import('@/app/api/claim/route');
@@ -164,6 +164,12 @@ describe('penalang C melihat rincian dan klaim miliknya', () => {
     const budi = d.anggota.find((a) => a.memberId === anggota.budi.id);
     expect(budi?.rincian.map((x) => x.eventId).sort()).toEqual([event.futsal, event.kopi].sort());
   });
+
+  it('lencana menu: hitungKlaimMenunggu sama dengan daftar klaim menunggu milik C', async () => {
+    const semua = await muatKlaimMenunggu(C.db, C.uid, hariIni());
+    expect(semua.length).toBeGreaterThan(0);
+    expect(await hitungKlaimMenunggu(C.db, C.uid)).toBe(semua.length);
+  });
 });
 
 describe('penalang D tidak bisa melihat atau memutuskan klaim C', () => {
@@ -177,6 +183,11 @@ describe('penalang D tidak bisa melihat atau memutuskan klaim C', () => {
     expect(await muatKlaimMenunggu(D.db, D.uid, hariIni(), event.futsal)).toEqual([]);
     expect(await muatKlaimMenunggu(D.db, C.uid, hariIni())).toEqual([]);
     expect(await muatKlaimMenunggu(D.db, C.uid, hariIni(), event.futsal)).toEqual([]);
+  });
+
+  it('lencana menu D tidak menghitung klaim C, juga dengan payer_id palsu', async () => {
+    expect(await hitungKlaimMenunggu(D.db, C.uid)).toBe(0);
+    expect(await hitungKlaimMenunggu(D.db, D.uid)).toBe((await muatKlaimMenunggu(D.db, D.uid, hariIni())).length);
   });
 
   it('D tidak bisa konfirmasi, tolak, atau melunasi tunai: 404 dan tidak ada yang berubah', async () => {

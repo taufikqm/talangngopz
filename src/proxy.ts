@@ -5,7 +5,7 @@ import { GalatPemuat, tokenDikenal, type JenisToken } from '@/lib/publik';
 
 /** Rute yang boleh dibuka tanpa sesi penalang. */
 function rutePublik(path: string): boolean {
-  return path === '/login';
+  return path === '/login' || path === '/sambutan';
 }
 
 const RUTE_PESERTA = /^\/(me|bill)(?:\/|$)/;
@@ -66,21 +66,29 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (rutePublik(path)) return respons;
-  if (!uid) return keLogin(request, respons);
+  if (!uid) return tanpaSesi(request, respons);
 
   const { data: profil } = await db.from('profiles').select('id').eq('id', uid).maybeSingle();
   if (!profil) {
     await db.auth.signOut();
-    return keLogin(request, respons);
+    return tanpaSesi(request, respons);
   }
   return respons;
 }
 
-function keLogin(request: NextRequest, respons: NextResponse): NextResponse {
-  const alih = NextResponse.redirect(new URL('/login', request.url));
-  // Bawa cookie hasil penyegaran atau penghapusan sesi ke respons pengalihan.
-  for (const cookie of respons.cookies.getAll()) alih.cookies.set(cookie);
-  return alih;
+/**
+ * Alamat utama tanpa sesi menayangkan halaman sambutan di URL yang sama (rewrite), supaya peserta
+ * yang membukanya, atau memasang aplikasi dari /me, tidak mendarat di layar login. Rute lain
+ * tetap dialihkan ke /login.
+ */
+function tanpaSesi(request: NextRequest, respons: NextResponse): NextResponse {
+  const tujuan =
+    request.nextUrl.pathname === '/'
+      ? NextResponse.rewrite(new URL('/sambutan', request.url))
+      : NextResponse.redirect(new URL('/login', request.url));
+  // Bawa cookie hasil penyegaran atau penghapusan sesi ke respons pengganti.
+  for (const cookie of respons.cookies.getAll()) tujuan.cookies.set(cookie);
+  return tujuan;
 }
 
 export const config = {
