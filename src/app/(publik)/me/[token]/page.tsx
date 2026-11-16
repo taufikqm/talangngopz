@@ -25,7 +25,7 @@ async function Isi({ params }: { params: Promise<{ token: string }> }) {
     unstable_rethrow(e);
     console.error('halaman me: gagal memuat', e instanceof GalatPemuat ? e.kode : 'tidak_dikenal');
     return (
-      <p role="alert" className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">
+      <p role="alert" className="mt-4 text-tl-isi font-semibold text-tl-galat">
         Tagihan gagal dimuat. Muat ulang halaman sebentar lagi.
       </p>
     );
@@ -38,19 +38,19 @@ async function Isi({ params }: { params: Promise<{ token: string }> }) {
 
   return (
     <>
-      <h1 className="text-xl font-medium">Halo {rekap.namaPanggilan}</h1>
+      <h1 className="text-tl-nominal font-extrabold">Halo {rekap.namaPanggilan}</h1>
       {rekap.totalUtang === 0 ? (
-        <p className="mt-2 text-2xl font-semibold">Kamu sudah lunas semua. Makasih!</p>
+        <p className="mt-2 text-[24px] font-extrabold">Kamu sudah lunas semua. Makasih!</p>
       ) : (
         <>
-          <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">Total utangmu</p>
-          <p className="text-4xl font-semibold tabular-nums">{rupiah(rekap.totalUtang)}</p>
+          <p className="mt-3 text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup">Total utangmu</p>
+          <p className="text-tl-angka font-extrabold tabular-nums">{rupiah(rekap.totalUtang)}</p>
         </>
       )}
 
       {tujuanAktif.length > 0 && (
         <section aria-labelledby="judul-tujuan" className="mt-6 flex flex-col gap-3">
-          <h2 id="judul-tujuan" className="text-sm font-medium">Transfer ke</h2>
+          <h2 id="judul-tujuan" className="text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup">Transfer ke</h2>
           {tujuanAktif.map((t) => (
             <KartuTujuan key={t.penalangId} tujuan={t} />
           ))}
@@ -69,17 +69,17 @@ async function Isi({ params }: { params: Promise<{ token: string }> }) {
 function Kerangka() {
   return (
     <div aria-busy="true" aria-label="Memuat" className="flex flex-col gap-3">
-      <div className="h-6 w-1/3 rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-10 w-1/2 rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-24 w-full rounded bg-zinc-200 dark:bg-zinc-800" />
-      <div className="h-32 w-full rounded bg-zinc-200 dark:bg-zinc-800" />
+      <div className="h-6 w-1/3 rounded-tl-tombol bg-tl-garis" />
+      <div className="h-11 w-1/2 rounded-tl-tombol bg-tl-garis" />
+      <div className="h-24 w-full rounded-tl-kartu border border-tl-garis bg-tl-permukaan" />
+      <div className="h-32 w-full rounded-tl-kartu border border-tl-garis bg-tl-permukaan" />
     </div>
   );
 }
 
 export default function HalamanMe({ params }: PageProps<'/me/[token]'>) {
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-md flex-1 flex-col px-4 pt-6">
+    <main className="mx-auto flex min-h-full w-full max-w-md flex-1 flex-col px-5 pt-6">
       <Suspense fallback={<Kerangka />}>
         <Isi params={params} />
       </Suspense>

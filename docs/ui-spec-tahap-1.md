@@ -22,6 +22,7 @@ Dirancang untuk satu tangan, sambil berdiri di kasir, dengan sinyal jelek.
 | Aksi utama | Satu tombol penuh lebar, menempel di bawah layar |
 | Aksi merusak | Butuh konfirmasi; tidak pernah jadi ketukan tunggal |
 | Papan ketik | `inputMode="numeric"` pada setiap medan nominal |
+| Tema | Terang saja, di semua layar (penalang, peserta, login). Warna, ukuran teks, dan sudut dari token `tl-*` di `globals.css`; varian `dark:` Tailwind dimatikan di sana. Layar baru memakai token yang sama dengan Beranda |
 
 ---
 

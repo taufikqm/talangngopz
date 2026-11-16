@@ -10,12 +10,15 @@ import { waktuTransferDariJam } from '@/lib/waktu-transfer';
 import { KELAS_STATUS, LABEL_STATUS, tampilJam, tampilTanggal, tampilTanggalWaktu } from '../../tampilan';
 
 const PESAN_LURING = 'Kamu sedang luring. Klaim belum terkirim, coba lagi saat tersambung.';
-const KELAS_GALAT = 'text-sm font-medium text-[#9A2A12]';
+const KELAS_GALAT = 'text-tl-label font-semibold text-tl-galat';
+const KELAS_LABEL = 'text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup';
+const KELAS_TOMBOL_UTAMA =
+  'min-h-13 rounded-tl-tombol bg-tl-aksi text-[16px] font-bold text-white disabled:bg-tl-nonaktif disabled:text-tl-teks-redup';
 
 type Baris = RekapPribadi['perEvent'][number];
 
-const KELAS_MEDAN =
-  'min-h-11 w-full rounded-lg border border-zinc-400 bg-white px-3 text-base dark:border-zinc-600 dark:bg-zinc-900';
+// Gaya Beranda (docs/gaya-visual.md): semua warna dan ukuran dari token tl-* di globals.css.
+const KELAS_MEDAN = 'min-h-12 w-full rounded-tl-tombol border-[1.5px] border-tl-garis-medan bg-tl-permukaan px-3 text-[16px] text-tl-teks';
 
 /** Jam sekarang di zona sirkel, "HH:MM". Dihitung saat formulir dibuka, bukan saat render. */
 function jamSekarang(): string {
@@ -87,24 +90,24 @@ export function DaftarBayar({
   }
 
   if (perEvent.length === 0) {
-    return <p className="mt-6 text-sm text-zinc-700 dark:text-zinc-300">Belum ada tagihan untukmu.</p>;
+    return <p className="mt-6 text-tl-isi text-tl-teks-sekunder">Belum ada tagihan untukmu.</p>;
   }
 
   return (
     <section aria-labelledby="judul-event" className="mt-6 flex flex-1 flex-col">
-      <h2 id="judul-event" className="text-sm font-medium">Tagihan per event</h2>
+      <h2 id="judul-event" className={KELAS_LABEL}>Tagihan per event</h2>
       {adaBedaPenalang && (
-        <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">
+        <p className="mt-2 text-tl-isi text-tl-teks-sekunder">
           Satu transfer hanya untuk satu penalang. Event milik {namaPenalang[penalangDipilih ?? ''] ?? 'penalang lain'} saja yang bisa digabung.
         </p>
       )}
-      <ul className="mt-2 flex flex-col divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+      <ul className="mt-2 flex flex-col divide-y divide-tl-garis-halus rounded-tl-kartu border border-tl-garis bg-tl-permukaan">
         {perEvent.map((p) => {
           const bisaDicentang = p.status === 'belum_bayar';
           const terkunci = bisaDicentang && !terpilih.has(p.shareId) && !bolehDicentang(p, penalangDipilih);
           const idCentang = `centang-${p.shareId}`;
           return (
-            <li key={p.shareId} className="flex min-h-16 items-start gap-3 py-3">
+            <li key={p.shareId} className="flex min-h-16 items-start gap-3 px-4 py-3">
               {bisaDicentang ? (
                 <input
                   id={idCentang}
@@ -112,29 +115,29 @@ export function DaftarBayar({
                   checked={terpilih.has(p.shareId)}
                   disabled={terkunci}
                   onChange={() => ubah(p.shareId)}
-                  className="mt-1 h-6 w-6 shrink-0 accent-zinc-900 disabled:opacity-40 dark:accent-zinc-100"
+                  className="mt-1 h-6 w-6 shrink-0 accent-tl-aksi disabled:opacity-40"
                 />
               ) : (
                 <span aria-hidden className="h-6 w-6 shrink-0" />
               )}
               <label htmlFor={bisaDicentang ? idCentang : undefined} className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="min-w-0 truncate font-medium">{p.judul}</span>
-                  <span className="shrink-0 tabular-nums">{rupiah(p.total)}</span>
+                  <span className="min-w-0 truncate text-tl-nama font-bold">{p.judul}</span>
+                  <span className="shrink-0 text-tl-nominal font-bold tabular-nums">{rupiah(p.total)}</span>
                 </span>
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                <span className="text-tl-label text-tl-teks-redup">
                   {tampilTanggal(p.tanggal)} · {namaPenalang[p.penalangId] ?? 'Penalang'}
                 </span>
                 {p.status === 'menunggu_konfirmasi' && p.menungguSejak ? (
-                  <span className={`self-start rounded-full px-2 py-0.5 text-xs font-medium ${KELAS_STATUS.menunggu_konfirmasi}`}>
+                  <span className={`self-start rounded-full px-2 py-0.5 text-tl-lencana font-bold ${KELAS_STATUS.menunggu_konfirmasi}`}>
                     Menunggu konfirmasi {namaPenalang[p.penalangId] ?? 'penalang'} · {tampilJam(p.menungguSejak)}
                   </span>
                 ) : p.status === 'lunas' ? (
-                  <span className={`self-start rounded-full px-2 py-0.5 text-xs font-medium ${KELAS_STATUS.lunas}`}>
+                  <span className={`self-start rounded-full px-2 py-0.5 text-tl-lencana font-bold ${KELAS_STATUS.lunas}`}>
                     Lunas{p.lunasPada ? ` · ${tampilTanggalWaktu(p.lunasPada)}` : ''}
                   </span>
                 ) : (
-                  <span className={`self-start rounded-full px-2 py-0.5 text-xs font-medium ${KELAS_STATUS[p.status]}`}>
+                  <span className={`self-start rounded-full px-2 py-0.5 text-tl-lencana font-bold ${KELAS_STATUS[p.status]}`}>
                     {LABEL_STATUS[p.status]}
                   </span>
                 )}
@@ -152,7 +155,7 @@ export function DaftarBayar({
       )}
 
       {dipilih.length > 0 && (
-        <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-3 border-t border-zinc-200 bg-white px-4 pt-3 pb-4 dark:border-zinc-800 dark:bg-black">
+        <div className="sticky bottom-0 -mx-5 mt-auto flex flex-col gap-3 border-t border-tl-garis bg-tl-latar px-5 pt-3 pb-4">
           {isian ? (
             <form
               onSubmit={(e) => {
@@ -161,11 +164,11 @@ export function DaftarBayar({
               }}
               className="flex flex-col gap-3"
             >
-              <p className="font-medium tabular-nums">
+              <p className="text-tl-nama font-bold tabular-nums">
                 Bayar {rupiah(jumlah)} ({dipilih.length} event)
               </p>
               <div className="flex flex-col gap-1">
-                <label htmlFor="jam-transfer" className="text-sm font-medium">Jam transfer</label>
+                <label htmlFor="jam-transfer" className={KELAS_LABEL}>Jam transfer</label>
                 <input
                   id="jam-transfer"
                   type="time"
@@ -176,7 +179,7 @@ export function DaftarBayar({
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label htmlFor="pengirim" className="text-sm font-medium">Nama pengirim atau bank</label>
+                <label htmlFor="pengirim" className={KELAS_LABEL}>Nama pengirim atau bank</label>
                 <input
                   id="pengirim"
                   required
@@ -194,7 +197,7 @@ export function DaftarBayar({
               <button
                 type="submit"
                 disabled={mengirim}
-                className="min-h-11 rounded-lg bg-zinc-900 font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+                className={KELAS_TOMBOL_UTAMA}
               >
                 {mengirim ? 'Mengirim…' : 'Saya sudah transfer'}
               </button>
@@ -205,7 +208,7 @@ export function DaftarBayar({
                   setIsian(null);
                   setGalat(null);
                 }}
-                className="min-h-11 text-sm font-medium underline underline-offset-4"
+                className="min-h-11 text-tl-isi font-bold text-tl-aksi underline underline-offset-4"
               >
                 Batal
               </button>
@@ -214,7 +217,7 @@ export function DaftarBayar({
             <button
               type="button"
               onClick={() => setIsian({ jam: jamSekarang(), pengirim: namaPanggilan })}
-              className="min-h-11 rounded-lg bg-zinc-900 font-medium text-white tabular-nums dark:bg-zinc-100 dark:text-zinc-900"
+              className={`${KELAS_TOMBOL_UTAMA} tabular-nums`}
             >
               Bayar {rupiah(jumlah)} ({dipilih.length} event)
             </button>

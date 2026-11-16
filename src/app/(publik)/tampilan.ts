@@ -7,10 +7,11 @@ export const LABEL_STATUS: Record<ShareStatus, string> = {
   lunas: 'Lunas',
 };
 
+// Warna status sama dengan LencanaStatus di Beranda (token tl-* di globals.css).
 export const KELAS_STATUS: Record<ShareStatus, string> = {
-  belum_bayar: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-50',
-  menunggu_konfirmasi: 'bg-amber-200 text-amber-950 dark:bg-amber-800 dark:text-amber-50',
-  lunas: 'bg-green-200 text-green-950 dark:bg-green-800 dark:text-green-50',
+  belum_bayar: 'bg-tl-belum text-tl-belum-teks',
+  menunggu_konfirmasi: 'bg-tl-menunggu text-tl-menunggu-teks',
+  lunas: 'bg-tl-lunas text-tl-lunas-teks',
 };
 
 /** "9 Nov 2026" dari kolom date (YYYY-MM-DD). */
