@@ -9,7 +9,6 @@ import { rupiah } from '@/lib/uang';
 import { buatEvent } from '@/actions/event';
 import { pratinjauImpor } from '@/actions/impor';
 import { CONTOH_TABEL } from '@/lib/impor';
-import { IkonCentang } from '@/components/ikon';
 import { LencanaStatus } from '@/components/lencana-status';
 
 export type PesertaPilihan = { id: string; namaPanggilan: string };
@@ -58,7 +57,7 @@ function Lencana({ ok, children }: { ok: boolean; children: ReactNode }) {
   );
 }
 
-/** Terpilih: hijau muda seperti lencana Lunas, garis hijau aksi, ikon centang; tidak pekat supaya tidak mendominasi layar. */
+/** Terpilih: hijau muda seperti lencana Lunas dengan garis hijau aksi; tidak pekat supaya tidak mendominasi layar. */
 function KancingNama({ aktif, nama, kamu, onClick }: { aktif: boolean; nama: string; kamu: boolean; onClick: () => void }) {
   return (
     <button
@@ -69,7 +68,6 @@ function KancingNama({ aktif, nama, kamu, onClick }: { aktif: boolean; nama: str
         aktif ? 'border-tl-aksi bg-tl-lunas font-bold text-tl-lunas-teks' : 'border-tl-garis-medan bg-tl-permukaan font-semibold text-tl-teks'
       }`}
     >
-      {aktif && <IkonCentang className="h-4 w-4 shrink-0" />}
       <span>{nama}</span>
       {kamu && <span className="text-tl-label font-semibold opacity-70">kamu</span>}
     </button>
