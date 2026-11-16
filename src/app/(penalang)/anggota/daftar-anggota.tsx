@@ -7,10 +7,16 @@ import { cabutToken, hapusAnggota, simpanAnggota } from '@/actions/anggota';
 
 const KONFIRMASI_CABUT = 'Tautan lama akan langsung mati dan kamu harus kirim yang baru. Lanjut?';
 
-const KELAS_MEDAN =
-  'min-h-11 w-full rounded-lg border border-zinc-400 bg-white px-3 text-base text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50';
+// Gaya Beranda (docs/gaya-visual.md): semua warna dan ukuran dari token tl-* di globals.css.
+const KELAS_MEDAN = 'min-h-12 w-full rounded-tl-tombol border-[1.5px] border-tl-garis-medan bg-tl-permukaan px-3 text-[16px] text-tl-teks';
+const KELAS_LABEL = 'text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup';
+const KELAS_GALAT = 'text-tl-label font-semibold text-tl-galat';
 const KELAS_ITEM_MENU =
-  'flex min-h-11 w-full items-center px-3 text-left text-sm hover:bg-zinc-100 disabled:text-zinc-500 dark:hover:bg-zinc-800';
+  'flex min-h-11 w-full items-center px-3 text-left text-tl-isi font-semibold hover:bg-tl-permukaan-redup disabled:text-tl-teks-redup';
+const KELAS_TOMBOL_UTAMA =
+  'min-h-12 flex-1 rounded-tl-tombol bg-tl-aksi px-4 text-[16px] font-bold text-white disabled:bg-tl-nonaktif disabled:text-tl-teks-redup';
+const KELAS_TOMBOL_SEKUNDER =
+  'min-h-12 flex-1 rounded-tl-tombol border-[1.5px] border-tl-aksi bg-tl-permukaan px-4 text-[16px] font-bold text-tl-aksi';
 
 async function salinKePapanKlip(teks: string): Promise<boolean> {
   try {
@@ -118,27 +124,27 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
   return (
     <div className="flex flex-col gap-4">
       {anggota.length === 0 ? (
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">Belum ada anggota. Tambahkan lewat isian di bawah.</p>
+        <p className="text-tl-isi text-tl-teks-sekunder">Belum ada anggota. Tambahkan lewat isian di bawah.</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <ul className="flex flex-col divide-y divide-tl-garis-halus rounded-tl-kartu border border-tl-garis bg-tl-permukaan">
           {anggota.map((a) => (
-            <li key={a.id} className="flex items-center gap-2 px-3 py-2">
+            <li key={a.id} className="flex items-center gap-2 px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 truncate font-medium">
+                <p className="flex items-center gap-2 truncate text-tl-nama font-bold">
                   <span className="truncate">{a.namaPanggilan}</span>
                   {!a.aktif && (
-                    <span className="shrink-0 rounded bg-zinc-200 px-1.5 text-xs font-normal text-zinc-800 dark:bg-zinc-700 dark:text-zinc-100">
+                    <span className="shrink-0 rounded-full bg-tl-belum px-2 py-0.5 text-tl-lencana font-bold text-tl-belum-teks">
                       Nonaktif
                     </span>
                   )}
                 </p>
-                <p className="truncate text-sm text-zinc-700 dark:text-zinc-300">{a.whatsapp ?? 'Tanpa nomor WhatsApp'}</p>
+                <p className="truncate text-tl-label text-tl-teks-redup">{a.whatsapp ?? 'Tanpa nomor WhatsApp'}</p>
               </div>
 
               <button
                 type="button"
                 onClick={() => salin(a)}
-                className="min-h-11 shrink-0 rounded-lg border border-zinc-400 px-3 text-sm font-medium dark:border-zinc-600"
+                className="min-h-11 shrink-0 rounded-tl-tombol border-[1.5px] border-tl-aksi bg-tl-permukaan px-3 text-tl-label font-bold text-tl-aksi"
               >
                 {tersalin === a.id ? 'Tersalin' : 'Salin tautan'}
               </button>
@@ -146,11 +152,11 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
               <details className="relative shrink-0">
                 <summary
                   aria-label={`Menu ${a.namaPanggilan}`}
-                  className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-lg text-xl [&::-webkit-details-marker]:hidden"
+                  className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-tl-tombol text-xl text-tl-teks-sekunder [&::-webkit-details-marker]:hidden"
                 >
                   ⋯
                 </summary>
-                <div className="absolute right-0 z-10 mt-1 w-56 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="absolute right-0 z-10 mt-1 w-56 overflow-hidden rounded-tl-kartu border border-tl-garis bg-tl-permukaan shadow-lg">
                   <button type="button" disabled={sedangProses} className={KELAS_ITEM_MENU} onClick={(e) => { tutupMenu(e.currentTarget); mulaiSunting(a); }}>
                     Sunting
                   </button>
@@ -158,7 +164,7 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
                     {a.aktif ? 'Nonaktifkan' : 'Aktifkan lagi'}
                   </button>
                   {a.punyaPorsi ? (
-                    <p className="px-3 py-2 text-xs text-zinc-700 dark:text-zinc-300">
+                    <p className="px-3 py-2 text-tl-label text-tl-teks-redup">
                       Tidak bisa dihapus karena punya porsi. Nonaktifkan saja supaya riwayatnya tetap utuh.
                     </p>
                   ) : (
@@ -166,7 +172,7 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
                       Hapus
                     </button>
                   )}
-                  <button type="button" disabled={sedangProses} className={`${KELAS_ITEM_MENU} text-red-700 dark:text-red-400`} onClick={(e) => { tutupMenu(e.currentTarget); cabut(a); }}>
+                  <button type="button" disabled={sedangProses} className={`${KELAS_ITEM_MENU} text-tl-galat`} onClick={(e) => { tutupMenu(e.currentTarget); cabut(a); }}>
                     Cabut tautan
                   </button>
                 </div>
@@ -176,14 +182,14 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
         </ul>
       )}
 
-      <p aria-live="polite" className={`min-h-5 text-sm ${pesan?.jenis === 'galat' ? 'text-red-700 dark:text-red-400' : 'text-zinc-800 dark:text-zinc-200'}`}>
+      <p aria-live="polite" className={`min-h-5 text-tl-isi font-semibold ${pesan?.jenis === 'galat' ? 'text-tl-galat' : 'text-tl-teks-sekunder'}`}>
         {pesan?.teks}
       </p>
 
-      <form onSubmit={simpan} className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
-        <h2 className="text-base font-semibold">{suntingId ? 'Sunting anggota' : 'Tambah anggota'}</h2>
+      <form onSubmit={simpan} className="flex flex-col gap-3 rounded-tl-kartu border border-tl-garis bg-tl-permukaan p-4">
+        <h2 className="text-tl-nama font-extrabold">{suntingId ? 'Sunting anggota' : 'Tambah anggota'}</h2>
         <div className="flex flex-col gap-1">
-          <label htmlFor="nama" className="text-sm font-medium">Nama panggilan</label>
+          <label htmlFor="nama" className={KELAS_LABEL}>Nama panggilan</label>
           <input
             id="nama"
             ref={medanNama}
@@ -196,10 +202,10 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
             aria-describedby={galatMedan.namaPanggilan ? 'galat-nama' : undefined}
             className={KELAS_MEDAN}
           />
-          {galatMedan.namaPanggilan && <p id="galat-nama" className="text-sm text-red-700 dark:text-red-400">{galatMedan.namaPanggilan}</p>}
+          {galatMedan.namaPanggilan && <p id="galat-nama" className={KELAS_GALAT}>{galatMedan.namaPanggilan}</p>}
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="whatsapp" className="text-sm font-medium">Nomor WhatsApp</label>
+          <label htmlFor="whatsapp" className={KELAS_LABEL}>Nomor WhatsApp</label>
           <input
             id="whatsapp"
             value={whatsapp}
@@ -212,20 +218,20 @@ export function DaftarAnggota({ anggota }: { anggota: AnggotaDaftar[] }) {
             aria-describedby="petunjuk-wa"
             className={KELAS_MEDAN}
           />
-          <p id="petunjuk-wa" className={`text-sm ${galatMedan.whatsapp ? 'text-red-700 dark:text-red-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+          <p id="petunjuk-wa" className={`text-tl-label ${galatMedan.whatsapp ? 'font-semibold text-tl-galat' : 'text-tl-teks-redup'}`}>
             {galatMedan.whatsapp ?? 'Awali dengan 62, tanpa 0 di depan. Boleh dikosongkan.'}
           </p>
         </div>
         <div className="flex gap-2">
           {suntingId && (
-            <button type="button" onClick={batalSunting} className="min-h-11 flex-1 rounded-lg border border-zinc-400 px-4 text-base font-medium dark:border-zinc-600">
+            <button type="button" onClick={batalSunting} className={KELAS_TOMBOL_SEKUNDER}>
               Batal
             </button>
           )}
           <button
             type="submit"
             disabled={sedangProses}
-            className="min-h-11 flex-1 rounded-lg bg-zinc-900 px-4 text-base font-medium text-white disabled:bg-zinc-500 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-400"
+            className={KELAS_TOMBOL_UTAMA}
           >
             {sedangProses ? 'Menyimpan…' : suntingId ? 'Simpan' : 'Tambah'}
           </button>

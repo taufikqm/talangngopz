@@ -25,15 +25,15 @@ async function muatAnggota(): Promise<AnggotaDaftar[] | null> {
 export default async function HalamanAnggota() {
   const anggota = await muatAnggota();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-md flex-col gap-4 px-5 py-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Anggota</h1>
-        {anggota && <span className="text-sm text-zinc-700 dark:text-zinc-300">{anggota.length} orang</span>}
+        <h1 className="text-[24px] font-extrabold">Anggota</h1>
+        {anggota && <span className="text-tl-label font-semibold text-tl-teks-redup">{anggota.length} orang</span>}
       </div>
       {anggota ? (
         <DaftarAnggota anggota={anggota} />
       ) : (
-        <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">
+        <p role="alert" className="text-tl-isi font-semibold text-tl-galat">
           Daftar anggota gagal dimuat. Muat ulang halaman sebentar lagi.
         </p>
       )}

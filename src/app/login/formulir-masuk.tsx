@@ -4,8 +4,10 @@ import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { masuk } from '@/actions/auth';
 
-const KELAS_MEDAN =
-  'min-h-11 w-full rounded-lg border border-zinc-400 bg-white px-3 text-base text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50';
+// Gaya Beranda (docs/gaya-visual.md): semua warna dan ukuran dari token tl-* di globals.css.
+const KELAS_MEDAN = 'min-h-12 w-full rounded-tl-tombol border-[1.5px] border-tl-garis-medan bg-tl-permukaan px-3 text-[16px] text-tl-teks';
+const KELAS_LABEL = 'text-tl-label font-bold uppercase tracking-[0.4px] text-tl-teks-redup';
+const KELAS_GALAT = 'text-tl-label font-semibold text-tl-galat';
 
 export function FormulirMasuk() {
   const router = useRouter();
@@ -31,7 +33,7 @@ export function FormulirMasuk() {
   return (
     <form onSubmit={kirim} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
+        <label htmlFor="email" className={KELAS_LABEL}>
           Surel
         </label>
         <input
@@ -51,7 +53,7 @@ export function FormulirMasuk() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-medium">
+        <label htmlFor="password" className={KELAS_LABEL}>
           Password
         </label>
         <input
@@ -68,14 +70,14 @@ export function FormulirMasuk() {
         />
       </div>
 
-      <p id="status-masuk" aria-live="polite" className="min-h-6 text-sm text-red-700 dark:text-red-400">
+      <p id="status-masuk" aria-live="polite" className={`min-h-6 text-tl-isi ${KELAS_GALAT}`}>
         {galat}
       </p>
 
       <button
         type="submit"
         disabled={sedangMasuk}
-        className="min-h-11 w-full rounded-lg bg-zinc-900 px-4 text-base font-medium text-white disabled:bg-zinc-500 dark:bg-zinc-50 dark:text-zinc-900 dark:disabled:bg-zinc-400"
+        className="min-h-13 w-full rounded-tl-tombol bg-tl-aksi px-4 text-[16px] font-bold text-white disabled:bg-tl-nonaktif disabled:text-tl-teks-redup"
       >
         {sedangMasuk ? 'Masuk…' : 'Masuk'}
       </button>
